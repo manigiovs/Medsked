@@ -1,725 +1,621 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   SafeAreaView,
   View,
   Text,
   StyleSheet,
-  ScrollView,
   TouchableOpacity,
   TextInput,
-  Modal,
-  Alert,
+  ScrollView,
   StatusBar,
+  KeyboardAvoidingView,
+  Platform,
 } from "react-native";
 
+import { Ionicons } from "@expo/vector-icons";
+
+/* =========================================================
+   COLORS
+========================================================= */
+
 const COLORS = {
-  bg: "#06171B",
-  card: "#0D2429",
-  card2: "#112D32",
-  border: "#234148",
-  text: "#F4FAFB",
-  muted: "#8CAAB0",
-  teal: "#2DB8B5",
-  tealDark: "#0B5559",
-  green: "#45C77A",
-  red: "#FF5B5B",
-  yellow: "#F5B82E",
-  white: "#FFFFFF",
+  bg: "#061A1D",
+  card: "#0C292D",
+  card2: "#103238",
+  border: "#1B4A50",
+  teal: "#2DB8BC",
+  tealDark: "#0A6D72",
+  text: "#F4F7F7",
+  muted: "#8CA8AB",
+  yellow: "#FFB52E",
+  red: "#FF5159",
+  green: "#43CA7C",
+  black: "#000000",
 };
 
-const patients = [
-  {
-    id: "p1",
-    name: "Eleanor Whitfield",
-    dob: "04/18/1953",
-    conditions: "Hypertension, Type 2 Diabetes, Atrial Fibrillation",
-    adherence: 87,
-  },
-  {
-    id: "p2",
-    name: "Marcus Reed",
-    dob: "11/02/1967",
-    conditions: "High Cholesterol, Hypothyroidism",
-    adherence: 93,
-  },
-];
+/* =========================================================
+   LOGO
+========================================================= */
 
-const initialMedications = [
-  {
-    id: 1,
-    name: "Lisinopril",
-    dose: "10 mg",
-    frequency: "Once Daily",
-    times: ["08:00"],
-    supply: 24,
-    total: 30,
-    instruction: "Take one tablet by mouth with water.",
-  },
-  {
-    id: 2,
-    name: "Metformin",
-    dose: "500 mg",
-    frequency: "Twice Daily",
-    times: ["08:00", "20:00"],
-    supply: 9,
-    total: 60,
-    instruction: "Take with breakfast and dinner to reduce stomach upset.",
-  },
-  {
-    id: 3,
-    name: "Apixaban",
-    dose: "5 mg",
-    frequency: "Twice Daily",
-    times: ["08:00", "20:00"],
-    supply: 5,
-    total: 60,
-    instruction: "Blood thinner. Do not skip doses. Take with or without food.",
-  },
-  {
-    id: 4,
-    name: "Atorvastatin",
-    dose: "20 mg",
-    frequency: "Once Daily",
-    times: ["21:00"],
-    supply: 22,
-    total: 30,
-    instruction: "Take at bedtime.",
-  },
-];
-
-const historyData = [
-  {
-    date: "Sep 3",
-    time: "9:00 PM",
-    medicine: "Atorvastatin 20 mg",
-    status: "Due now",
-  },
-  {
-    date: "Sep 3",
-    time: "8:00 PM",
-    medicine: "Metformin 500 mg",
-    status: "Taken",
-  },
-  {
-    date: "Sep 3",
-    time: "8:00 PM",
-    medicine: "Apixaban 5 mg",
-    status: "Taken",
-  },
-  {
-    date: "Sep 3",
-    time: "8:00 AM",
-    medicine: "Lisinopril 10 mg",
-    status: "Missed",
-  },
-  {
-    date: "Sep 3",
-    time: "8:00 AM",
-    medicine: "Metformin 500 mg",
-    status: "Taken",
-  },
-  {
-    date: "Sep 3",
-    time: "8:00 AM",
-    medicine: "Apixaban 5 mg",
-    status: "Taken",
-  },
-  {
-    date: "Sep 2",
-    time: "9:00 PM",
-    medicine: "Atorvastatin 20 mg",
-    status: "Taken",
-  },
-  {
-    date: "Sep 2",
-    time: "8:00 PM",
-    medicine: "Metformin 500 mg",
-    status: "Taken",
-  },
-  {
-    date: "Sep 2",
-    time: "8:00 PM",
-    medicine: "Apixaban 5 mg",
-    status: "Taken",
-  },
-  {
-    date: "Sep 2",
-    time: "8:00 AM",
-    medicine: "Lisinopril 10 mg",
-    status: "Skipped",
-  },
-];
-
-export default function App() {
-  const [role, setRole] = useState("caregiver");
-  const [page, setPage] = useState("dashboard");
-  const [patient, setPatient] = useState(patients[0]);
-  const [medications, setMedications] = useState(initialMedications);
-  const [notifications, setNotifications] = useState(2);
-  const [showRoleModal, setShowRoleModal] = useState(false);
-  const [showAddMedication, setShowAddMedication] = useState(false);
-
-  const [newMedication, setNewMedication] = useState({
-    name: "",
-    dose: "",
-    time: "",
-  });
-
-  const refillCount = medications.filter(
-    (med) => med.supply <= 10
-  ).length;
-
-  const takenToday = 4;
-  const totalToday = 6;
-
-  const pageTitle = useMemo(() => {
-    const titles = {
-      dashboard: "Dashboard",
-      doses: "Today's Doses",
-      medications: "Medications",
-      adherence: "Adherence",
-      history: "History",
-      alerts: "Alerts",
-      reports: "Reports",
-    };
-
-    return titles[page];
-  }, [page]);
-
-  function navigate(screen) {
-    setPage(screen);
-  }
-
-  function markTaken(id) {
-    Alert.alert("Dose Confirmed", "The medication has been marked as taken.");
-  }
-
-  function markSkipped(id) {
-    Alert.alert("Dose Skipped", "The dose has been marked as skipped.");
-  }
-
-  function refillMedication(med) {
-    Alert.alert(
-      "Refill Request",
-      `Refill request created for ${med.name} ${med.dose}.`
-    );
-  }
-
-  function addMedication() {
-    if (!newMedication.name || !newMedication.dose) {
-      Alert.alert("Missing Information", "Please enter medication name and dose.");
-      return;
-    }
-
-    const medication = {
-      id: Date.now(),
-      name: newMedication.name,
-      dose: newMedication.dose,
-      frequency: "Once Daily",
-      times: [newMedication.time || "08:00"],
-      supply: 30,
-      total: 30,
-      instruction: "Follow the instructions provided by the clinician.",
-    };
-
-    setMedications((current) => [...current, medication]);
-
-    setNewMedication({
-      name: "",
-      dose: "",
-      time: "",
-    });
-
-    setShowAddMedication(false);
-
-    Alert.alert("Medication Added", `${medication.name} has been added.`);
-  }
-
-  function generateReport() {
-    Alert.alert(
-      "Clinical Report",
-      `Report generated for ${patient.name}.\n\nAdherence: ${patient.adherence}%\nActive medications: ${medications.length}\nMissed doses: 4\nSkipped doses: 7`
-    );
-  }
-
+function Logo() {
   return (
-    <SafeAreaView style={styles.safe}>
-      <StatusBar barStyle="light-content" backgroundColor={COLORS.bg} />
-
-      <View style={styles.app}>
-        {/* HEADER */}
-        <View style={styles.header}>
-          <View style={styles.logoRow}>
-            <View style={styles.logo}>
-              <Text style={styles.logoText}>♡</Text>
-            </View>
-
-            <View>
-              <Text style={styles.logoTitle}>MEDSKED</Text>
-              <Text style={styles.logoSubtitle}>Medication Care</Text>
-            </View>
-          </View>
-
-          <View style={styles.headerActions}>
-            <TouchableOpacity
-              style={styles.roleButton}
-              onPress={() => setShowRoleModal(true)}
-            >
-              <Text style={styles.roleIcon}>♙</Text>
-              <Text style={styles.roleText}>
-                {role.charAt(0).toUpperCase() + role.slice(1)}
-              </Text>
-              <Text style={styles.arrow}>⌄</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.notificationButton}
-              onPress={() => navigate("alerts")}
-            >
-              <Text style={styles.bell}>♧</Text>
-
-              {notifications > 0 && (
-                <View style={styles.badge}>
-                  <Text style={styles.badgeText}>{notifications}</Text>
-                </View>
-              )}
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        {/* CONTENT */}
-        <View style={styles.body}>
-          <ScrollView
-            style={styles.content}
-            contentContainerStyle={styles.contentContainer}
-            showsVerticalScrollIndicator={false}
-          >
-            <View style={styles.pageHeader}>
-              <View>
-                <Text style={styles.pageTitle}>{pageTitle}</Text>
-
-                <Text style={styles.pageSubtitle}>
-                  {patient.name}
-                </Text>
-              </View>
-
-              {page === "medications" && (
-                <TouchableOpacity
-                  style={styles.primaryButton}
-                  onPress={() => setShowAddMedication(true)}
-                >
-                  <Text style={styles.primaryButtonText}>
-                    + Add medication
-                  </Text>
-                </TouchableOpacity>
-              )}
-            </View>
-
-            {page === "dashboard" && (
-              <Dashboard
-                patient={patient}
-                medications={medications}
-                takenToday={takenToday}
-                totalToday={totalToday}
-                refillCount={refillCount}
-                navigate={navigate}
-              />
-            )}
-
-            {page === "doses" && (
-              <TodaysDoses
-                medications={medications}
-                markTaken={markTaken}
-                markSkipped={markSkipped}
-              />
-            )}
-
-            {page === "medications" && (
-              <Medications
-                medications={medications}
-                refillMedication={refillMedication}
-                onAdd={() => setShowAddMedication(true)}
-              />
-            )}
-
-            {page === "adherence" && (
-              <Adherence patient={patient} />
-            )}
-
-            {page === "history" && (
-              <History />
-            )}
-
-            {page === "alerts" && (
-              <Alerts
-                notifications={notifications}
-                setNotifications={setNotifications}
-              />
-            )}
-
-            {page === "reports" && (
-              <Reports
-                patients={patients}
-                generateReport={generateReport}
-              />
-            )}
-          </ScrollView>
-
-          {/* MOBILE NAVIGATION */}
-          <View style={styles.bottomNav}>
-            <NavButton
-              icon="⌂"
-              label="Home"
-              active={page === "dashboard"}
-              onPress={() => navigate("dashboard")}
-            />
-
-            <NavButton
-              icon="◷"
-              label="Doses"
-              active={page === "doses"}
-              onPress={() => navigate("doses")}
-            />
-
-            <NavButton
-              icon="♢"
-              label="Meds"
-              active={page === "medications"}
-              onPress={() => navigate("medications")}
-            />
-
-            <NavButton
-              icon="▥"
-              label="Stats"
-              active={page === "adherence"}
-              onPress={() => navigate("adherence")}
-            />
-
-            <NavButton
-              icon="☷"
-              label="More"
-              active={
-                page === "history" ||
-                page === "alerts" ||
-                page === "reports"
-              }
-              onPress={() => navigate("reports")}
-            />
-          </View>
-        </View>
-
-        {/* ROLE MODAL */}
-        <Modal
-          visible={showRoleModal}
-          transparent
-          animationType="slide"
-          onRequestClose={() => setShowRoleModal(false)}
-        >
-          <View style={styles.modalOverlay}>
-            <View style={styles.modal}>
-              <Text style={styles.modalTitle}>Select Role</Text>
-
-              <RoleOption
-                title="Patient"
-                description="Manage your medications and doses"
-                active={role === "patient"}
-                onPress={() => {
-                  setRole("patient");
-                  setShowRoleModal(false);
-                }}
-              />
-
-              <RoleOption
-                title="Caregiver / Family"
-                description="Monitor patients and receive alerts"
-                active={role === "caregiver"}
-                onPress={() => {
-                  setRole("caregiver");
-                  setShowRoleModal(false);
-                }}
-              />
-
-              <RoleOption
-                title="Administrator"
-                description="Manage users and system access"
-                active={role === "administrator"}
-                onPress={() => {
-                  setRole("administrator");
-                  setShowRoleModal(false);
-                }}
-              />
-
-              <TouchableOpacity
-                style={styles.cancelButton}
-                onPress={() => setShowRoleModal(false)}
-              >
-                <Text style={styles.cancelText}>Cancel</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </Modal>
-
-        {/* ADD MEDICATION MODAL */}
-        <Modal
-          visible={showAddMedication}
-          transparent
-          animationType="slide"
-          onRequestClose={() => setShowAddMedication(false)}
-        >
-          <View style={styles.modalOverlay}>
-            <View style={styles.modal}>
-              <Text style={styles.modalTitle}>Add Medication</Text>
-
-              <Text style={styles.inputLabel}>Medication name</Text>
-
-              <TextInput
-                value={newMedication.name}
-                onChangeText={(text) =>
-                  setNewMedication({
-                    ...newMedication,
-                    name: text,
-                  })
-                }
-                placeholder="e.g. Lisinopril"
-                placeholderTextColor={COLORS.muted}
-                style={styles.input}
-              />
-
-              <Text style={styles.inputLabel}>Dose</Text>
-
-              <TextInput
-                value={newMedication.dose}
-                onChangeText={(text) =>
-                  setNewMedication({
-                    ...newMedication,
-                    dose: text,
-                  })
-                }
-                placeholder="e.g. 10 mg"
-                placeholderTextColor={COLORS.muted}
-                style={styles.input}
-              />
-
-              <Text style={styles.inputLabel}>Schedule</Text>
-
-              <TextInput
-                value={newMedication.time}
-                onChangeText={(text) =>
-                  setNewMedication({
-                    ...newMedication,
-                    time: text,
-                  })
-                }
-                placeholder="e.g. 08:00"
-                placeholderTextColor={COLORS.muted}
-                style={styles.input}
-              />
-
-              <TouchableOpacity
-                style={styles.primaryButtonLarge}
-                onPress={addMedication}
-              >
-                <Text style={styles.primaryButtonText}>
-                  Add Medication
-                </Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={styles.cancelButton}
-                onPress={() => setShowAddMedication(false)}
-              >
-                <Text style={styles.cancelText}>Cancel</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </Modal>
+    <View style={styles.logoContainer}>
+      <View style={styles.logoIcon}>
+        <Ionicons
+          name="heart-outline"
+          size={25}
+          color="#061A1D"
+        />
       </View>
-    </SafeAreaView>
+
+      <View>
+        <Text style={styles.logoText}>MEDSKED</Text>
+        <Text style={styles.logoSubtext}>
+          Medication Care
+        </Text>
+      </View>
+    </View>
   );
 }
 
 /* =========================================================
-   DASHBOARD
+   TOP HEADER
 ========================================================= */
 
-function Dashboard({
-  patient,
-  medications,
-  takenToday,
-  totalToday,
-  refillCount,
-  navigate,
-}) {
+function TopHeader({ onLogout }) {
   return (
-    <>
-      <View style={styles.greeting}>
-        <Text style={styles.greetingTitle}>Good evening</Text>
+    <View style={styles.topHeader}>
+      <Logo />
 
-        <Text style={styles.greetingSubtitle}>
-          Medication overview for {patient.name}.
-        </Text>
+      <View style={styles.headerRight}>
+        <TouchableOpacity
+          style={styles.patientButton}
+          onPress={() => {}}
+        >
+          <Ionicons
+            name="person-outline"
+            size={14}
+            color={COLORS.teal}
+          />
+
+          <Text style={styles.patientText}>
+            Patient
+          </Text>
+
+          <Ionicons
+            name="chevron-down"
+            size={13}
+            color={COLORS.teal}
+          />
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.notification}
+          onPress={() => {}}
+        >
+          <Ionicons
+            name="notifications-outline"
+            size={24}
+            color={COLORS.text}
+          />
+
+          <View style={styles.notificationBadge}>
+            <Text style={styles.badgeText}>2</Text>
+          </View>
+        </TouchableOpacity>
       </View>
+    </View>
+  );
+}
+
+/* =========================================================
+   BOTTOM NAVIGATION
+========================================================= */
+
+function BottomNav({ active, setActive }) {
+  const tabs = [
+    {
+      key: "home",
+      label: "Home",
+      icon: "home-outline",
+    },
+    {
+      key: "doses",
+      label: "Doses",
+      icon: "time-outline",
+    },
+    {
+      key: "meds",
+      label: "Meds",
+      icon: "diamond-outline",
+    },
+    {
+      key: "stats",
+      label: "Stats",
+      icon: "bar-chart-outline",
+    },
+    {
+      key: "more",
+      label: "More",
+      icon: "list-outline",
+    },
+  ];
+
+  return (
+    <View style={styles.bottomNav}>
+      {tabs.map((tab) => {
+        const selected = active === tab.key;
+
+        return (
+          <TouchableOpacity
+            key={tab.key}
+            style={[
+              styles.navItem,
+              selected && styles.navItemActive,
+            ]}
+            onPress={() => setActive(tab.key)}
+          >
+            <Ionicons
+              name={tab.icon}
+              size={21}
+              color={
+                selected
+                  ? COLORS.bg
+                  : COLORS.teal
+              }
+            />
+
+            <Text
+              style={[
+                styles.navText,
+                selected && styles.navTextActive,
+              ]}
+            >
+              {tab.label}
+            </Text>
+          </TouchableOpacity>
+        );
+      })}
+    </View>
+  );
+}
+
+/* =========================================================
+   MEDICATION DATA
+========================================================= */
+
+const medications = [
+  {
+    name: "Lisinopril",
+    dose: "10 mg",
+    instruction: "Tablet · Once Daily",
+    time: "08:00",
+    supply: 24,
+    total: 30,
+    days: 24,
+  },
+  {
+    name: "Metformin",
+    dose: "500 mg",
+    instruction: "Tablet · Twice Daily",
+    time: "08:00",
+    supply: 9,
+    total: 14,
+    days: 5,
+  },
+  {
+    name: "Apixaban",
+    dose: "5 mg",
+    instruction: "Tablet · Twice Daily",
+    time: "08:00",
+    supply: 5,
+    total: 8,
+    days: 3,
+  },
+  {
+    name: "Atorvastatin",
+    dose: "20 mg",
+    instruction: "Tablet · Once Daily",
+    time: "09:00 PM",
+    supply: 22,
+    total: 30,
+    days: 22,
+  },
+];
+
+/* =========================================================
+   MEDICATION ICON
+========================================================= */
+
+function MedicineIcon() {
+  return (
+    <View style={styles.medicineIcon}>
+      <Ionicons
+        name="diamond-outline"
+        size={23}
+        color={COLORS.teal}
+      />
+    </View>
+  );
+}
+
+/* =========================================================
+   HOME SCREEN
+========================================================= */
+
+function HomeScreen({ setActive }) {
+  return (
+    <ScrollView
+      style={styles.screen}
+      contentContainerStyle={styles.content}
+      showsVerticalScrollIndicator={false}
+    >
+      <Text style={styles.pageTitle}>
+        Dashboard
+      </Text>
+
+      <Text style={styles.patientName}>
+        Eleanor Whitfield
+      </Text>
+
+      <Text style={styles.greeting}>
+        Good evening
+      </Text>
+
+      <Text style={styles.description}>
+        Medication overview for Eleanor Whitfield.
+      </Text>
+
+      {/* STAT CARDS */}
 
       <View style={styles.statsGrid}>
-        <StatCard
-          icon="⌁"
-          value={`${patient.adherence}%`}
-          label="Adherence"
-          color={COLORS.yellow}
-        />
+        <View style={styles.smallStatCard}>
+          <View style={styles.statIconYellow}>
+            <Ionicons
+              name="pulse-outline"
+              size={21}
+              color={COLORS.yellow}
+            />
+          </View>
 
-        <StatCard
-          icon="✓"
-          value={`${takenToday}/${totalToday}`}
-          label="Doses taken today"
-          color={COLORS.green}
-        />
+          <Text style={styles.statBig}>
+            87%
+          </Text>
 
-        <StatCard
-          icon="◷"
-          value="9:00 PM"
-          label="Next dose"
-          extra="Atorvastatin"
-          color={COLORS.teal}
-        />
+          <Text style={styles.statLabel}>
+            Adherence
+          </Text>
+        </View>
 
-        <StatCard
-          icon="▣"
-          value={refillCount}
-          label="Refills needed"
-          color={COLORS.yellow}
-        />
+        <View style={styles.smallStatCard}>
+          <View style={styles.statIconGreen}>
+            <Ionicons
+              name="checkmark"
+              size={23}
+              color={COLORS.green}
+            />
+          </View>
+
+          <Text style={styles.statBig}>
+            4/6
+          </Text>
+
+          <Text style={styles.statLabel}>
+            Doses taken today
+          </Text>
+        </View>
+
+        <View style={styles.smallStatCard}>
+          <View style={styles.statIconBlue}>
+            <Ionicons
+              name="time-outline"
+              size={22}
+              color={COLORS.teal}
+            />
+          </View>
+
+          <Text style={styles.statBig}>
+            9:00 PM
+          </Text>
+
+          <Text style={styles.statLabel}>
+            Next dose{"\n"}Atorvastatin
+          </Text>
+        </View>
+
+        <View style={styles.smallStatCard}>
+          <View style={styles.statIconYellow}>
+            <Ionicons
+              name="reader-outline"
+              size={20}
+              color={COLORS.yellow}
+            />
+          </View>
+
+          <Text style={styles.statBig}>
+            2
+          </Text>
+
+          <Text style={styles.statLabel}>
+            Refills needed
+          </Text>
+        </View>
       </View>
 
-      <SectionCard
-        title="Today's remaining doses"
-        subtitle="1 dose left to take"
-        action="View all"
-        onAction={() => navigate("doses")}
-      >
-        <DoseRow
-          medication="Atorvastatin"
-          dose="20 mg"
-          time="9:00 PM"
-          status="Due now"
-        />
-      </SectionCard>
+      {/* REMAINING DOSES */}
 
-      <SectionCard
-        title="Refill tracker"
-        subtitle="Supply levels for active medications"
-      >
+      <View style={styles.largeCard}>
+        <View style={styles.cardHeaderRow}>
+          <View>
+            <Text style={styles.cardTitle}>
+              Today's remaining doses
+            </Text>
+
+            <Text style={styles.cardSubtitle}>
+              1 dose left to take
+            </Text>
+          </View>
+
+          <TouchableOpacity
+            onPress={() => setActive("doses")}
+          >
+            <Text style={styles.viewAll}>
+              View all →
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.doseCard}>
+          <MedicineIcon />
+
+          <View style={styles.doseInfo}>
+            <Text style={styles.medName}>
+              Atorvastatin{" "}
+              <Text style={styles.medDose}>
+                20 mg
+              </Text>
+            </Text>
+
+            <Text style={styles.medTime}>
+              ◷ 9:00 PM · tablet
+            </Text>
+          </View>
+
+          <View style={styles.dueBadge}>
+            <Text style={styles.dueText}>
+              Due now
+            </Text>
+          </View>
+        </View>
+      </View>
+
+      {/* REFILL TRACKER */}
+
+      <View style={styles.largeCard}>
+        <Text style={styles.cardTitle}>
+          Refill tracker
+        </Text>
+
+        <Text style={styles.cardSubtitle}>
+          Supply levels for active medications
+        </Text>
+
         {medications.map((med) => (
-          <RefillRow key={med.id} medication={med} />
+          <View
+            key={med.name}
+            style={styles.refillRow}
+          >
+            <MedicineIcon />
+
+            <View style={styles.refillInfo}>
+              <Text style={styles.medName}>
+                {med.name}
+              </Text>
+
+              <Text style={styles.medTime}>
+                {med.supply} left · ~{med.days} days
+              </Text>
+            </View>
+
+            {med.supply <= 9 && (
+              <View style={styles.refillBadge}>
+                <Text style={styles.refillText}>
+                  Refill
+                </Text>
+              </View>
+            )}
+          </View>
         ))}
 
         <TouchableOpacity
           style={styles.manageButton}
-          onPress={() => navigate("medications")}
+          onPress={() => setActive("meds")}
         >
-          <Text style={styles.manageText}>Manage medications</Text>
+          <Text style={styles.manageText}>
+            Manage medications
+          </Text>
         </TouchableOpacity>
-      </SectionCard>
+      </View>
+
+      {/* ATTENTION */}
 
       <View style={styles.attentionCard}>
-        <Text style={styles.attentionTitle}>⚠ Attention needed</Text>
+        <Text style={styles.attentionTitle}>
+          ⚠ Attention needed
+        </Text>
 
         <Text style={styles.attentionText}>
-          Metformin and Apixaban are running low. Refill requests should
-          be reviewed.
+          2 medications are running low.
         </Text>
       </View>
-    </>
+    </ScrollView>
   );
 }
 
 /* =========================================================
-   TODAY'S DOSES
+   DOSES SCREEN
 ========================================================= */
 
-function TodaysDoses({
-  medications,
-  markTaken,
-  markSkipped,
-}) {
+function DosesScreen() {
+  const [filter, setFilter] =
+    useState("All");
+
+  const doses = [
+    {
+      name: "Lisinopril",
+      dose: "10 mg",
+      status: "Missed",
+      time: "8:00 AM",
+    },
+    {
+      name: "Metformin",
+      dose: "500 mg",
+      status: "Taken",
+      time: "8:00 AM",
+    },
+    {
+      name: "Apixaban",
+      dose: "5 mg",
+      status: "Taken",
+      time: "8:00 AM",
+    },
+  ];
+
   return (
-    <>
+    <ScrollView
+      style={styles.screen}
+      contentContainerStyle={styles.content}
+      showsVerticalScrollIndicator={false}
+    >
+      <Text style={styles.pageTitle}>
+        Today's Doses
+      </Text>
+
+      <Text style={styles.patientName}>
+        Eleanor Whitfield
+      </Text>
+
+      {/* FILTER */}
+
       <View style={styles.filterRow}>
-        <FilterButton title="All" active />
-        <FilterButton title="Upcoming" />
-        <FilterButton title="Taken" />
-        <FilterButton title="Missed" />
+        {["All", "Upcoming", "Taken", "Missed"].map(
+          (item) => (
+            <TouchableOpacity
+              key={item}
+              style={[
+                styles.filterButton,
+                filter === item &&
+                  styles.filterActive,
+              ]}
+              onPress={() => setFilter(item)}
+            >
+              <Text
+                style={[
+                  styles.filterText,
+                  filter === item &&
+                    styles.filterTextActive,
+                ]}
+              >
+                {item}
+              </Text>
+            </TouchableOpacity>
+          )
+        )}
       </View>
 
-      <DoseTimeGroup
-        time="8:00 AM"
-        medications={medications.slice(0, 3)}
-        markTaken={markTaken}
-        markSkipped={markSkipped}
+      {/* MORNING */}
+
+      <DoseGroup
+        title="8:00 AM"
+        count="3 medications"
+        doses={doses}
       />
 
-      <DoseTimeGroup
-        time="8:00 PM"
-        medications={medications.slice(1, 3)}
-        markTaken={markTaken}
-        markSkipped={markSkipped}
-      />
+      {/* AFTERNOON */}
 
-      <DoseTimeGroup
-        time="9:00 PM"
-        medications={medications.slice(3, 4)}
-        markTaken={markTaken}
-        markSkipped={markSkipped}
+      <DoseGroup
+        title="8:00 PM"
+        count="2 medications"
+        doses={[
+          {
+            name: "Metformin",
+            dose: "500 mg",
+            status: "Taken",
+            time: "8:00 PM",
+          },
+          {
+            name: "Apixaban",
+            dose: "5 mg",
+            status: "Upcoming",
+            time: "8:00 PM",
+          },
+        ]}
       />
-    </>
+    </ScrollView>
   );
 }
 
-function DoseTimeGroup({
-  time,
-  medications,
-  markTaken,
-  markSkipped,
+/* =========================================================
+   DOSE GROUP
+========================================================= */
+
+function DoseGroup({
+  title,
+  count,
+  doses,
 }) {
   return (
-    <View style={styles.sectionCard}>
-      <View style={styles.sectionHeader}>
-        <Text style={styles.sectionTitle}>◷ {time}</Text>
+    <View style={styles.doseGroup}>
+      <View style={styles.doseGroupTitle}>
+        <Text style={styles.timeTitle}>
+          ◷ {title}
+        </Text>
 
-        <Text style={styles.sectionSubtitle}>
-          {medications.length} medications
+        <Text style={styles.groupCount}>
+          {count}
         </Text>
       </View>
 
-      {medications.map((med, index) => (
-        <View style={styles.doseItem} key={med.id}>
-          <View style={styles.medIcon}>
-            <Text style={styles.medIconText}>◇</Text>
-          </View>
+      {doses.map((dose) => (
+        <View
+          key={dose.name + dose.time}
+          style={styles.doseListCard}
+        >
+          <MedicineIcon />
 
           <View style={styles.doseInfo}>
             <Text style={styles.medName}>
-              {med.name}{" "}
-              <Text style={styles.medDose}>{med.dose}</Text>
+              {dose.name}{" "}
+              <Text style={styles.medDose}>
+                {dose.dose}
+              </Text>
             </Text>
 
-            <Text style={styles.doseDetails}>
-              ◷ {time} · tablet
+            <Text style={styles.medTime}>
+              ◷ {dose.time} · tablet
             </Text>
           </View>
 
-          {index === 0 && time === "8:00 AM" ? (
-            <View style={styles.statusMissed}>
-              <Text style={styles.statusMissedText}>Missed</Text>
-            </View>
-          ) : (
-            <TouchableOpacity
-              style={styles.statusTaken}
-              onPress={() => markTaken(med.id)}
+          <View
+            style={[
+              styles.statusBadge,
+              dose.status === "Missed"
+                ? styles.statusMissed
+                : dose.status === "Taken"
+                ? styles.statusTaken
+                : styles.statusUpcoming,
+            ]}
+          >
+            <Text
+              style={[
+                styles.statusText,
+                dose.status === "Missed" &&
+                  styles.statusMissedText,
+              ]}
             >
-              <Text style={styles.statusTakenText}>Taken</Text>
-            </TouchableOpacity>
-          )}
+              {dose.status}
+            </Text>
+          </View>
         </View>
       ))}
     </View>
@@ -727,264 +623,351 @@ function DoseTimeGroup({
 }
 
 /* =========================================================
-   MEDICATIONS
+   MEDICATIONS SCREEN
 ========================================================= */
 
-function Medications({
-  medications,
-  refillMedication,
-  onAdd,
-}) {
+function MedicationsScreen() {
   return (
-    <>
-      {medications.map((med) => {
-        const percentage = Math.max(
-          0,
-          Math.min(100, (med.supply / med.total) * 100)
-        );
+    <ScrollView
+      style={styles.screen}
+      contentContainerStyle={styles.content}
+      showsVerticalScrollIndicator={false}
+    >
+      <Text style={styles.pageTitle}>
+        Medications
+      </Text>
 
-        const low = med.supply <= 10;
+      <Text style={styles.patientName}>
+        Eleanor Whitfield
+      </Text>
 
-        return (
-          <View style={styles.medicationCard} key={med.id}>
-            <View style={styles.medicationHeader}>
-              <View style={styles.bigMedIcon}>
-                <Text style={styles.bigMedIconText}>◇</Text>
-              </View>
-
-              <View style={styles.medicationTitleBox}>
-                <Text style={styles.medicationName}>
-                  {med.name}{" "}
-                  <Text style={styles.medicationDose}>
-                    {med.dose}
-                  </Text>
-                </Text>
-
-                <Text style={styles.medicationFrequency}>
-                  Tablet · {med.frequency}
-                </Text>
-              </View>
-            </View>
-
-            <Text style={styles.instruction}>
-              {med.instruction}
-            </Text>
-
-            <View style={styles.timeRow}>
-              {med.times.map((time) => (
-                <View style={styles.timePill} key={time}>
-                  <Text style={styles.timeText}>
-                    ◷ {time}
-                  </Text>
-                </View>
-              ))}
-            </View>
-
-            <Text style={styles.prescribed}>
-              ♙ Prescribed by Dr. Priya Nair
-            </Text>
-
-            <View style={styles.supplyBox}>
-              <View style={styles.supplyHeader}>
-                <Text style={styles.supplyTitle}>
-                  ▣ Supply
-                </Text>
-
-                <Text
-                  style={[
-                    styles.supplyValue,
-                    low && { color: COLORS.red },
-                  ]}
-                >
-                  {med.supply} of {med.total} · ~
-                  {Math.ceil(med.supply / (med.times.length || 1))} days
-                </Text>
-              </View>
-
-              <View style={styles.progressBackground}>
-                <View
-                  style={[
-                    styles.progress,
-                    {
-                      width: `${percentage}%`,
-                      backgroundColor: low
-                        ? COLORS.red
-                        : COLORS.teal,
-                    },
-                  ]}
-                />
-              </View>
-            </View>
-
-            <View style={styles.actionRow}>
-              <TouchableOpacity
-                style={styles.refillButton}
-                onPress={() => refillMedication(med)}
-              >
-                <Text style={styles.refillText}>↻ Refill</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={styles.editButton}
-                onPress={() =>
-                  Alert.alert(
-                    "Edit Medication",
-                    `Edit ${med.name} ${med.dose}`
-                  )
-                }
-              >
-                <Text style={styles.editText}>✎ Edit</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        );
-      })}
-
-      <TouchableOpacity
-        style={styles.addMedicationBottom}
-        onPress={onAdd}
-      >
-        <Text style={styles.addMedicationBottomText}>
+      <TouchableOpacity style={styles.addMedication}>
+        <Text style={styles.addMedicationText}>
           + Add medication
         </Text>
       </TouchableOpacity>
-    </>
+
+      {medications.map((med) => (
+        <MedicationCard
+          key={med.name}
+          medication={med}
+        />
+      ))}
+    </ScrollView>
   );
 }
 
 /* =========================================================
-   ADHERENCE
+   MEDICATION CARD
 ========================================================= */
 
-function Adherence({ patient }) {
-  const daily = [80, 80, 100, 100, 80, 100, 100, 65, 80, 100, 65, 80, 80, 77];
+function MedicationCard({
+  medication,
+}) {
+  const percent =
+    medication.supply /
+    medication.total;
 
   return (
-    <>
-      <View style={styles.adherenceGrid}>
-        <View style={styles.adherenceCard}>
-          <Text style={styles.centerTitle}>Overall adherence</Text>
+    <View style={styles.medicationCard}>
+      <View style={styles.medicationTop}>
+        <MedicineIcon />
 
-          <Text style={styles.centerSubtitle}>
-            Doses taken as scheduled
-          </Text>
-
-          <View style={styles.circle}>
-            <Text style={styles.circleValue}>
-              {patient.adherence}%
+        <View>
+          <Text style={styles.medicationName}>
+            {medication.name}{" "}
+            <Text style={styles.medicationDose}>
+              {medication.dose}
             </Text>
-
-            <Text style={styles.circleLabel}>
-              Adherence
-            </Text>
-          </View>
-
-          <View style={styles.outcomeRow}>
-            <Outcome value="72" label="Taken" color={COLORS.green} />
-            <Outcome value="7" label="Skipped" color={COLORS.yellow} />
-            <Outcome value="4" label="Missed" color={COLORS.red} />
-          </View>
-        </View>
-
-        <View style={styles.chartCard}>
-          <Text style={styles.sectionTitle}>
-            Daily adherence
           </Text>
 
-          <Text style={styles.sectionSubtitle}>
-            Percentage of scheduled doses taken each day
+          <Text style={styles.medicationInstruction}>
+            {medication.instruction}
+          </Text>
+        </View>
+      </View>
+
+      <Text style={styles.medicationDescription}>
+        Take one tablet by mouth with water.
+      </Text>
+
+      <View style={styles.timeBadge}>
+        <Text style={styles.timeBadgeText}>
+          ◷ {medication.time}
+        </Text>
+      </View>
+
+      <Text style={styles.prescribed}>
+        ♟ Prescribed by Dr. Priya Nair
+      </Text>
+
+      <View style={styles.supplyBox}>
+        <View style={styles.supplyHeader}>
+          <Text style={styles.supplyTitle}>
+            ▣ Supply
           </Text>
 
-          <View style={styles.chart}>
-            {daily.map((value, index) => (
-              <View style={styles.barContainer} key={index}>
-                <View
-                  style={[
-                    styles.bar,
-                    {
-                      height: `${value * 0.7}%`,
-                    },
-                  ]}
-                />
-                <Text style={styles.barLabel}>
-                  {index + 1}
-                </Text>
-              </View>
-            ))}
-          </View>
+          <Text style={styles.supplyValue}>
+            {medication.supply} of{" "}
+            {medication.total} · ~
+            {medication.days} days
+          </Text>
+        </View>
+
+        <View style={styles.progressBackground}>
+          <View
+            style={[
+              styles.progressFill,
+              {
+                width:
+                  `${percent * 100}%`,
+              },
+            ]}
+          />
         </View>
       </View>
 
-      <View style={styles.sectionCard}>
-        <Text style={styles.sectionTitle}>Dose outcomes</Text>
+      <View style={styles.medButtons}>
+        <TouchableOpacity style={styles.refillButton}>
+          <Text style={styles.refillButtonText}>
+            ↻ Refill
+          </Text>
+        </TouchableOpacity>
 
-        <Text style={styles.sectionSubtitle}>
-          83 completed doses
-        </Text>
-
-        <View style={styles.donut}>
-          <View style={styles.donutInner}>
-            <Text style={styles.donutText}>83</Text>
-          </View>
-        </View>
+        <TouchableOpacity style={styles.editButton}>
+          <Text style={styles.editButtonText}>
+            ✎ Edit
+          </Text>
+        </TouchableOpacity>
       </View>
-
-      <View style={styles.sectionCard}>
-        <Text style={styles.sectionTitle}>
-          Adherence by medication
-        </Text>
-
-        <Text style={styles.sectionSubtitle}>
-          Lowest adherence first
-        </Text>
-
-        <MedicationAdherence
-          name="Atorvastatin 20 mg"
-          percentage={77}
-        />
-
-        <MedicationAdherence
-          name="Lisinopril 10 mg"
-          percentage={86}
-        />
-
-        <MedicationAdherence
-          name="Metformin 500 mg"
-          percentage={86}
-        />
-
-        <MedicationAdherence
-          name="Apixaban 5 mg"
-          percentage={93}
-        />
-      </View>
-    </>
+    </View>
   );
 }
 
-function MedicationAdherence({ name, percentage }) {
-  return (
-    <View style={styles.adherenceMedication}>
-      <View style={styles.adherenceMedicationHeader}>
-        <Text style={styles.medName}>{name}</Text>
+/* =========================================================
+   STATS SCREEN
+========================================================= */
 
-        <Text style={styles.adherencePercent}>
-          {percentage}%
+function StatsScreen() {
+  return (
+    <ScrollView
+      style={styles.screen}
+      contentContainerStyle={styles.content}
+      showsVerticalScrollIndicator={false}
+    >
+      <Text style={styles.pageTitle}>
+        Adherence
+      </Text>
+
+      <Text style={styles.patientName}>
+        Eleanor Whitfield
+      </Text>
+
+      {/* OVERALL */}
+
+      <View style={styles.adherenceCard}>
+        <Text style={styles.adherenceTitle}>
+          Overall adherence
+        </Text>
+
+        <Text style={styles.adherenceSubtitle}>
+          Doses taken as scheduled
+        </Text>
+
+        <View style={styles.circleContainer}>
+          <View style={styles.outerCircle}>
+            <View style={styles.innerCircle}>
+              <Text style={styles.percent}>
+                87%
+              </Text>
+
+              <Text style={styles.percentLabel}>
+                Adherence
+              </Text>
+            </View>
+          </View>
+        </View>
+
+        <View style={styles.outcomeRow}>
+          <View>
+            <Text
+              style={[
+                styles.outcomeNumber,
+                {
+                  color: COLORS.green,
+                },
+              ]}
+            >
+              72
+            </Text>
+
+            <Text style={styles.outcomeLabel}>
+              Taken
+            </Text>
+          </View>
+
+          <View>
+            <Text
+              style={[
+                styles.outcomeNumber,
+                {
+                  color: COLORS.yellow,
+                },
+              ]}
+            >
+              7
+            </Text>
+
+            <Text style={styles.outcomeLabel}>
+              Skipped
+            </Text>
+          </View>
+
+          <View>
+            <Text
+              style={[
+                styles.outcomeNumber,
+                {
+                  color: COLORS.red,
+                },
+              ]}
+            >
+              4
+            </Text>
+
+            <Text style={styles.outcomeLabel}>
+              Missed
+            </Text>
+          </View>
+        </View>
+      </View>
+
+      {/* DAILY ADHERENCE */}
+
+      <View style={styles.chartCard}>
+        <Text style={styles.chartTitle}>
+          Daily adherence
+        </Text>
+
+        <Text style={styles.chartSubtitle}>
+          Percentage of scheduled doses taken each day
+        </Text>
+
+        <View style={styles.barChart}>
+          {[
+            70, 70, 90, 90, 70, 90, 90,
+            55, 70, 90, 55, 70, 70, 70,
+          ].map((height, index) => (
+            <View
+              key={index}
+              style={styles.barColumn}
+            >
+              <View
+                style={[
+                  styles.bar,
+                  {
+                    height: height,
+                  },
+                ]}
+              />
+
+              <Text style={styles.barLabel}>
+                {index + 1}
+              </Text>
+            </View>
+          ))}
+        </View>
+      </View>
+
+      {/* DOSE OUTCOMES */}
+
+      <View style={styles.chartCard}>
+        <Text style={styles.chartTitle}>
+          Dose outcomes
+        </Text>
+
+        <Text style={styles.chartSubtitle}>
+          83 completed doses
+        </Text>
+
+        <View style={styles.greenCircleContainer}>
+          <View style={styles.greenOuterCircle}>
+            <View style={styles.greenInnerCircle}>
+              <Text style={styles.doseNumber}>
+                83
+              </Text>
+            </View>
+          </View>
+        </View>
+      </View>
+
+      {/* BY MEDICATION */}
+
+      <View style={styles.medAdherenceCard}>
+        <Text style={styles.chartTitle}>
+          Adherence by medication
+        </Text>
+
+        <Text style={styles.chartSubtitle}>
+          Lowest adherence first
+        </Text>
+
+        <AdherenceRow
+          name="Atorvastatin 20 mg"
+          value={77}
+        />
+
+        <AdherenceRow
+          name="Lisinopril 10 mg"
+          value={86}
+        />
+
+        <AdherenceRow
+          name="Metformin 500 mg"
+          value={86}
+        />
+
+        <AdherenceRow
+          name="Apixaban 5 mg"
+          value={93}
+        />
+      </View>
+    </ScrollView>
+  );
+}
+
+/* =========================================================
+   ADHERENCE ROW
+========================================================= */
+
+function AdherenceRow({
+  name,
+  value,
+}) {
+  return (
+    <View style={styles.adherenceRow}>
+      <View style={styles.adherenceRowHeader}>
+        <Text style={styles.adherenceMedName}>
+          {name}
+        </Text>
+
+        <Text style={styles.adherenceValue}>
+          {value}%
         </Text>
       </View>
 
-      <View style={styles.progressBackground}>
+      <View style={styles.adherenceBarBackground}>
         <View
           style={[
-            styles.progress,
+            styles.adherenceBar,
             {
-              width: `${percentage}%`,
+              width: `${value}%`,
             },
           ]}
         />
       </View>
 
-      <Text style={styles.tracked}>
+      <Text style={styles.trackedText}>
         14 doses tracked
       </Text>
     </View>
@@ -992,676 +975,121 @@ function MedicationAdherence({ name, percentage }) {
 }
 
 /* =========================================================
-   HISTORY
+   REPORTS SCREEN
 ========================================================= */
 
-function History() {
+function ReportsScreen() {
   return (
-    <View style={styles.sectionCard}>
-      <View style={styles.sectionHeader}>
-        <View>
-          <Text style={styles.sectionTitle}>Dose log</Text>
+    <ScrollView
+      style={styles.screen}
+      contentContainerStyle={styles.content}
+      showsVerticalScrollIndicator={false}
+    >
+      <Text style={styles.pageTitle}>
+        Reports
+      </Text>
 
-          <Text style={styles.sectionSubtitle}>
-            84 records
-          </Text>
-        </View>
+      <Text style={styles.patientName}>
+        Eleanor Whitfield
+      </Text>
 
-        <View style={styles.filterRow}>
-          <FilterButton title="All" active />
-        </View>
-      </View>
+      <Text style={styles.reportTitle}>
+        Clinical Reports
+      </Text>
 
-      {historyData.map((item, index) => (
-        <View style={styles.historyRow} key={index}>
-          <View style={styles.historyDate}>
-            <Text style={styles.historyDateText}>
-              {item.date}
-            </Text>
-          </View>
+      <Text style={styles.reportSubtitle}>
+        Adherence summaries across 2 patients · last 14 days
+      </Text>
 
-          <View style={styles.historyTime}>
-            <Text style={styles.historyMuted}>
-              {item.time}
-            </Text>
-          </View>
+      <TouchableOpacity style={styles.exportButton}>
+        <Text style={styles.exportText}>
+          ↓ Export all
+        </Text>
+      </TouchableOpacity>
 
-          <View style={styles.historyMedicine}>
-            <Text style={styles.medName}>
-              {item.medicine}
-            </Text>
-          </View>
+      {/* REPORT */}
 
-          <Status status={item.status} />
-        </View>
-      ))}
-    </View>
-  );
-}
-
-/* =========================================================
-   ALERTS
-========================================================= */
-
-function Alerts({
-  notifications,
-  setNotifications,
-}) {
-  function markAllRead() {
-    setNotifications(0);
-    Alert.alert("Alerts", "All alerts marked as read.");
-  }
-
-  return (
-    <>
-      <View style={styles.alertTop}>
-        <View>
-          <Text style={styles.sectionTitle}>
-            Caregiver Alerts
+      <View style={styles.reportCard}>
+        <View style={styles.reportNameRow}>
+          <Text style={styles.reportName}>
+            Eleanor Whitfield
           </Text>
 
-          <Text style={styles.sectionSubtitle}>
-            {notifications} unread · activity across your patients
-          </Text>
+          <View style={styles.adherenceBadge}>
+            <Text style={styles.adherenceBadgeText}>
+              87% adherence
+            </Text>
+          </View>
         </View>
+
+        <Text style={styles.reportDetails}>
+          DOB 04/18/1953 · Hypertension, Type 2 Diabetes, Atrial
+          Fibrillation
+        </Text>
 
         <TouchableOpacity
-          style={styles.outlineButton}
-          onPress={markAllRead}
+          style={styles.generateButton}
         >
-          <Text style={styles.outlineText}>
-            Mark all read
+          <Text style={styles.generateText}>
+            ▣ Generate report
           </Text>
         </TouchableOpacity>
+
+        <View style={styles.reportStats}>
+          <ReportStat
+            title="Adherence"
+            value="87%"
+          />
+
+          <ReportStat
+            title="Active meds"
+            value="4"
+          />
+
+          <ReportStat
+            title="Missed doses"
+            value="4"
+            red
+          />
+
+          <ReportStat
+            title="Skipped doses"
+            value="7"
+            yellow
+          />
+        </View>
+
+        <Text style={styles.refillsTitle}>
+          Refills needed
+        </Text>
+
+        <View style={styles.refillTags}>
+          <View style={styles.refillTag}>
+            <Text style={styles.refillTagText}>
+              ◇ Metformin · 9 left
+            </Text>
+          </View>
+
+          <View style={styles.refillTag}>
+            <Text style={styles.refillTagText}>
+              ◇ Apixaban · 5 left
+            </Text>
+          </View>
+        </View>
       </View>
-
-      <View style={styles.infoAlert}>
-        <Text style={styles.infoAlertTitle}>
-          ✉ Email delivery is simulated
-        </Text>
-
-        <Text style={styles.infoAlertText}>
-          Connect an email service later to send real dose reminders
-          and caregiver alerts.
-        </Text>
-      </View>
-
-      <View style={styles.sectionCard}>
-        <Text style={styles.sectionTitle}>Activity feed</Text>
-
-        <Text style={styles.sectionSubtitle}>
-          Notifications for all dose activity and refills
-        </Text>
-
-        <AlertItem
-          title="Refill needed soon"
-          description="Apixaban 5 mg is running low — 5 doses remaining."
-          patient="Eleanor Whitfield"
-          color={COLORS.teal}
-        />
-
-        <AlertItem
-          title="Dose missed"
-          description="Eleanor missed the evening dose of Metformin 500 mg."
-          patient="Eleanor Whitfield"
-          color={COLORS.red}
-        />
-
-        <AlertItem
-          title="Dose confirmed"
-          description="Eleanor took Lisinopril 10 mg on time this morning."
-          patient="Eleanor Whitfield"
-          color={COLORS.green}
-        />
-
-        <AlertItem
-          title="Refill needed soon"
-          description="Rosuvastatin 10 mg is running low — 6 doses remaining."
-          patient="Marcus Reed"
-          color={COLORS.teal}
-        />
-      </View>
-
-      <View style={styles.sectionCard}>
-        <Text style={styles.sectionTitle}>
-          Delivery preferences
-        </Text>
-
-        <Text style={styles.sectionSubtitle}>
-          How caregivers receive alerts
-        </Text>
-
-        <PreferenceRow
-          title="In-app notifications"
-          description="Show alerts inside MEDSKED"
-          enabled
-        />
-
-        <PreferenceRow
-          title="Email alerts"
-          description="Send to caregiver email addresses"
-          enabled
-        />
-
-        <PreferenceRow
-          title="Push notifications"
-          description="Mobile push notifications"
-          enabled={false}
-        />
-      </View>
-    </>
+    </ScrollView>
   );
 }
 
 /* =========================================================
-   REPORTS
+   REPORT STAT
 ========================================================= */
-
-function Reports({
-  patients,
-  generateReport,
-}) {
-  return (
-    <>
-      <View style={styles.reportHeader}>
-        <View>
-          <Text style={styles.pageTitle}>
-            Clinical Reports
-          </Text>
-
-          <Text style={styles.pageSubtitle}>
-            Adherence summaries across {patients.length} patients ·
-            last 14 days
-          </Text>
-        </View>
-
-        <TouchableOpacity
-          style={styles.outlineButton}
-          onPress={generateReport}
-        >
-          <Text style={styles.outlineText}>
-            ↓ Export all
-          </Text>
-        </TouchableOpacity>
-      </View>
-
-      {patients.map((p) => (
-        <View style={styles.reportCard} key={p.id}>
-          <View style={styles.reportPatientHeader}>
-            <View>
-              <View style={styles.nameRow}>
-                <Text style={styles.reportPatientName}>
-                  {p.name}
-                </Text>
-
-                <View style={styles.adherenceBadge}>
-                  <Text style={styles.adherenceBadgeText}>
-                    {p.adherence}% adherence
-                  </Text>
-                </View>
-              </View>
-
-              <Text style={styles.reportPatientDetails}>
-                DOB {p.dob} · {p.conditions}
-              </Text>
-            </View>
-
-            <TouchableOpacity
-              style={styles.generateButton}
-              onPress={generateReport}
-            >
-              <Text style={styles.generateText}>
-                ▣ Generate report
-              </Text>
-            </TouchableOpacity>
-          </View>
-
-          <View style={styles.reportStats}>
-            <ReportStat
-              title="Adherence"
-              value={`${p.adherence}%`}
-            />
-
-            <ReportStat
-              title="Active meds"
-              value={p.id === "p1" ? "4" : "2"}
-            />
-
-            <ReportStat
-              title="Missed doses"
-              value={p.id === "p1" ? "4" : "1"}
-              danger
-            />
-
-            <ReportStat
-              title="Skipped doses"
-              value={p.id === "p1" ? "7" : "1"}
-              warning
-            />
-          </View>
-
-          <Text style={styles.refillsTitle}>
-            Refills needed
-          </Text>
-
-          <View style={styles.refillTags}>
-            {p.id === "p1" ? (
-              <>
-                <View style={styles.tag}>
-                  <Text style={styles.tagText}>
-                    ◇ Metformin · 9 left
-                  </Text>
-                </View>
-
-                <View style={styles.tag}>
-                  <Text style={styles.tagText}>
-                    ◇ Apixaban · 5 left
-                  </Text>
-                </View>
-              </>
-            ) : (
-              <View style={styles.tag}>
-                <Text style={styles.tagText}>
-                  ◇ Rosuvastatin · 6 left
-                </Text>
-              </View>
-            )}
-          </View>
-        </View>
-      ))}
-    </>
-  );
-}
-
-/* =========================================================
-   COMPONENTS
-========================================================= */
-
-function StatCard({
-  icon,
-  value,
-  label,
-  color,
-  extra,
-}) {
-  return (
-    <View style={styles.statCard}>
-      <View
-        style={[
-          styles.statIcon,
-          { backgroundColor: color + "25" },
-        ]}
-      >
-        <Text
-          style={[
-            styles.statIconText,
-            { color },
-          ]}
-        >
-          {icon}
-        </Text>
-      </View>
-
-      <Text style={styles.statValue}>{value}</Text>
-
-      <Text style={styles.statLabel}>{label}</Text>
-
-      {extra && (
-        <Text style={styles.statExtra}>{extra}</Text>
-      )}
-    </View>
-  );
-}
-
-function SectionCard({
-  title,
-  subtitle,
-  action,
-  onAction,
-  children,
-}) {
-  return (
-    <View style={styles.sectionCard}>
-      <View style={styles.sectionHeader}>
-        <View style={{ flex: 1 }}>
-          <Text style={styles.sectionTitle}>
-            {title}
-          </Text>
-
-          {subtitle && (
-            <Text style={styles.sectionSubtitle}>
-              {subtitle}
-            </Text>
-          )}
-        </View>
-
-        {action && (
-          <TouchableOpacity onPress={onAction}>
-            <Text style={styles.viewAll}>
-              {action} →
-            </Text>
-          </TouchableOpacity>
-        )}
-      </View>
-
-      {children}
-    </View>
-  );
-}
-
-function DoseRow({
-  medication,
-  dose,
-  time,
-  status,
-}) {
-  return (
-    <View style={styles.doseRow}>
-      <View style={styles.medIcon}>
-        <Text style={styles.medIconText}>◇</Text>
-      </View>
-
-      <View style={styles.doseInfo}>
-        <Text style={styles.medName}>
-          {medication}{" "}
-          <Text style={styles.medDose}>{dose}</Text>
-        </Text>
-
-        <Text style={styles.doseDetails}>
-          ◷ {time} · tablet
-        </Text>
-      </View>
-
-      <View style={styles.dueBadge}>
-        <Text style={styles.dueText}>{status}</Text>
-      </View>
-    </View>
-  );
-}
-
-function RefillRow({ medication }) {
-  const low = medication.supply <= 10;
-
-  return (
-    <View style={styles.refillRow}>
-      <View style={styles.smallMedIcon}>
-        <Text style={styles.smallMedIconText}>◇</Text>
-      </View>
-
-      <View style={{ flex: 1 }}>
-        <Text style={styles.refillName}>
-          {medication.name}
-        </Text>
-
-        <Text style={styles.refillDays}>
-          {medication.supply} left · ~
-          {Math.max(
-            1,
-            Math.ceil(
-              medication.supply / medication.times.length
-            )
-          )} days
-        </Text>
-      </View>
-
-      {low && (
-        <View style={styles.refillBadge}>
-          <Text style={styles.refillBadgeText}>
-            Refill
-          </Text>
-        </View>
-      )}
-    </View>
-  );
-}
-
-function NavButton({
-  icon,
-  label,
-  active,
-  onPress,
-}) {
-  return (
-    <TouchableOpacity
-      style={[
-        styles.navButton,
-        active && styles.navButtonActive,
-      ]}
-      onPress={onPress}
-    >
-      <Text
-        style={[
-          styles.navIcon,
-          active && styles.navIconActive,
-        ]}
-      >
-        {icon}
-      </Text>
-
-      <Text
-        style={[
-          styles.navLabel,
-          active && styles.navLabelActive,
-        ]}
-      >
-        {label}
-      </Text>
-    </TouchableOpacity>
-  );
-}
-
-function RoleOption({
-  title,
-  description,
-  active,
-  onPress,
-}) {
-  return (
-    <TouchableOpacity
-      style={[
-        styles.roleOption,
-        active && styles.roleOptionActive,
-      ]}
-      onPress={onPress}
-    >
-      <View style={{ flex: 1 }}>
-        <Text style={styles.roleOptionTitle}>
-          {title}
-        </Text>
-
-        <Text style={styles.roleOptionDescription}>
-          {description}
-        </Text>
-      </View>
-
-      <View
-        style={[
-          styles.radio,
-          active && styles.radioActive,
-        ]}
-      >
-        {active && <View style={styles.radioDot} />}
-      </View>
-    </TouchableOpacity>
-  );
-}
-
-function FilterButton({ title, active }) {
-  return (
-    <TouchableOpacity
-      style={[
-        styles.filterButton,
-        active && styles.filterButtonActive,
-      ]}
-    >
-      <Text
-        style={[
-          styles.filterText,
-          active && styles.filterTextActive,
-        ]}
-      >
-        {title}
-      </Text>
-    </TouchableOpacity>
-  );
-}
-
-function Outcome({
-  value,
-  label,
-  color,
-}) {
-  return (
-    <View style={styles.outcome}>
-      <Text
-        style={[
-          styles.outcomeValue,
-          { color },
-        ]}
-      >
-        {value}
-      </Text>
-
-      <Text style={styles.outcomeLabel}>
-        {label}
-      </Text>
-    </View>
-  );
-}
-
-function Status({ status }) {
-  if (status === "Taken") {
-    return (
-      <View style={styles.statusTaken}>
-        <Text style={styles.statusTakenText}>
-          Taken
-        </Text>
-      </View>
-    );
-  }
-
-  if (status === "Missed") {
-    return (
-      <View style={styles.statusMissed}>
-        <Text style={styles.statusMissedText}>
-          Missed
-        </Text>
-      </View>
-    );
-  }
-
-  if (status === "Skipped") {
-    return (
-      <View style={styles.statusSkipped}>
-        <Text style={styles.statusSkippedText}>
-          Skipped
-        </Text>
-      </View>
-    );
-  }
-
-  return (
-    <View style={styles.dueBadge}>
-      <Text style={styles.dueText}>
-        Due now
-      </Text>
-    </View>
-  );
-}
-
-function AlertItem({
-  title,
-  description,
-  patient,
-  color,
-}) {
-  return (
-    <View
-      style={[
-        styles.alertItem,
-        { borderColor: color + "60" },
-      ]}
-    >
-      <View
-        style={[
-          styles.alertIcon,
-          { backgroundColor: color + "20" },
-        ]}
-      >
-        <Text
-          style={[
-            styles.alertIconText,
-            { color },
-          ]}
-        >
-          !
-        </Text>
-      </View>
-
-      <View style={{ flex: 1 }}>
-        <Text style={styles.alertTitle}>
-          {title}
-        </Text>
-
-        <Text style={styles.alertDescription}>
-          {description}
-        </Text>
-
-        <View style={styles.patientTag}>
-          <Text style={styles.patientTagText}>
-            {patient}
-          </Text>
-        </View>
-      </View>
-    </View>
-  );
-}
-
-function PreferenceRow({
-  title,
-  description,
-  enabled,
-}) {
-  return (
-    <View style={styles.preferenceRow}>
-      <View style={styles.preferenceIcon}>
-        <Text style={styles.preferenceIconText}>
-          ◉
-        </Text>
-      </View>
-
-      <View style={{ flex: 1 }}>
-        <Text style={styles.preferenceTitle}>
-          {title}
-        </Text>
-
-        <Text style={styles.preferenceDescription}>
-          {description}
-        </Text>
-      </View>
-
-      <View
-        style={[
-          styles.switch,
-          enabled && styles.switchOn,
-        ]}
-      >
-        <View
-          style={[
-            styles.switchThumb,
-            enabled && styles.switchThumbOn,
-          ]}
-        />
-      </View>
-    </View>
-  );
-}
 
 function ReportStat({
   title,
   value,
-  danger,
-  warning,
+  red,
+  yellow,
 }) {
   return (
     <View style={styles.reportStat}>
@@ -1672,8 +1100,12 @@ function ReportStat({
       <Text
         style={[
           styles.reportStatValue,
-          danger && { color: COLORS.red },
-          warning && { color: COLORS.yellow },
+          red && {
+            color: COLORS.red,
+          },
+          yellow && {
+            color: COLORS.yellow,
+          },
         ]}
       >
         {value}
@@ -1683,39 +1115,230 @@ function ReportStat({
 }
 
 /* =========================================================
+   LOGIN
+========================================================= */
+
+function LoginScreen({
+  onLogin,
+  onCreateAccount,
+}) {
+  const [email, setEmail] =
+    useState("");
+
+  const [password, setPassword] =
+    useState("");
+
+  return (
+    <SafeAreaView style={styles.loginSafe}>
+      <StatusBar
+        barStyle="light-content"
+        backgroundColor={COLORS.bg}
+      />
+
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={
+          Platform.OS === "ios"
+            ? "padding"
+            : undefined
+        }
+      >
+        <ScrollView
+          contentContainerStyle={
+            styles.loginContent
+          }
+          keyboardShouldPersistTaps="handled"
+        >
+          <View style={styles.loginLogo}>
+            <Logo />
+          </View>
+
+          <Text style={styles.loginTitle}>
+            Welcome back
+          </Text>
+
+          <Text style={styles.loginSubtitle}>
+            Sign in to continue managing your{"\n"}
+            household medication schedule.
+          </Text>
+
+          <Text style={styles.loginLabel}>
+            Email Address
+          </Text>
+
+          <TextInput
+            value={email}
+            onChangeText={setEmail}
+            placeholder="Enter your email"
+            placeholderTextColor={
+              COLORS.muted
+            }
+            style={styles.loginInput}
+            keyboardType="email-address"
+            autoCapitalize="none"
+          />
+
+          <Text style={styles.loginLabel}>
+            Password
+          </Text>
+
+          <TextInput
+            value={password}
+            onChangeText={setPassword}
+            placeholder="Enter your password"
+            placeholderTextColor={
+              COLORS.muted
+            }
+            style={styles.loginInput}
+            secureTextEntry
+          />
+
+          <TouchableOpacity>
+            <Text style={styles.forgotPassword}>
+              Forgot password?
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.loginButton}
+            onPress={onLogin}
+          >
+            <Text style={styles.loginButtonText}>
+              Sign In
+            </Text>
+          </TouchableOpacity>
+
+          <View style={styles.loginDivider} />
+
+          <Text style={styles.noAccount}>
+            Don't have an account?
+          </Text>
+
+          <TouchableOpacity
+            style={styles.createButton}
+            onPress={onCreateAccount}
+          >
+            <Text style={styles.createButtonText}>
+              Create Account
+            </Text>
+          </TouchableOpacity>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
+  );
+}
+
+/* =========================================================
+   APP
+========================================================= */
+
+export default function App() {
+  const [screen, setScreen] =
+    useState("login");
+
+  const [activeTab, setActiveTab] =
+    useState("home");
+
+  /* =========================
+     LOGIN
+  ========================= */
+
+  if (screen === "login") {
+    return (
+      <LoginScreen
+        onLogin={() =>
+          setScreen("app")
+        }
+        onCreateAccount={() => {}}
+      />
+    );
+  }
+
+  /* =========================
+     MAIN APP
+  ========================= */
+
+  function renderScreen() {
+    if (activeTab === "home") {
+      return (
+        <HomeScreen
+          setActive={setActiveTab}
+        />
+      );
+    }
+
+    if (activeTab === "doses") {
+      return <DosesScreen />;
+    }
+
+    if (activeTab === "meds") {
+      return <MedicationsScreen />;
+    }
+
+    if (activeTab === "stats") {
+      return <StatsScreen />;
+    }
+
+    if (activeTab === "more") {
+      return <ReportsScreen />;
+    }
+
+    return <HomeScreen />;
+  }
+
+  return (
+    <SafeAreaView style={styles.app}>
+      <StatusBar
+        barStyle="light-content"
+        backgroundColor={COLORS.bg}
+      />
+
+      <TopHeader />
+
+      <View style={{ flex: 1 }}>
+        {renderScreen()}
+      </View>
+
+      <BottomNav
+        active={activeTab}
+        setActive={setActiveTab}
+      />
+    </SafeAreaView>
+  );
+}
+
+/* =========================================================
    STYLES
 ========================================================= */
 
 const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-    backgroundColor: COLORS.bg,
-  },
-
   app: {
     flex: 1,
     backgroundColor: COLORS.bg,
   },
 
-  header: {
-    height: 76,
+  screen: {
+    flex: 1,
+    backgroundColor: COLORS.bg,
+  },
+
+  content: {
     paddingHorizontal: 18,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
+    paddingTop: 23,
+    paddingBottom: 30,
   },
 
-  logoRow: {
+  /* LOGO */
+
+  logoContainer: {
     flexDirection: "row",
     alignItems: "center",
   },
 
-  logo: {
-    width: 46,
-    height: 46,
-    borderRadius: 13,
+  logoIcon: {
+    width: 47,
+    height: 47,
+    borderRadius: 11,
     backgroundColor: COLORS.teal,
     alignItems: "center",
     justifyContent: "center",
@@ -1723,73 +1346,63 @@ const styles = StyleSheet.create({
   },
 
   logoText: {
-    fontSize: 29,
-    color: COLORS.bg,
-    fontWeight: "bold",
-  },
-
-  logoTitle: {
     color: COLORS.text,
     fontSize: 17,
-    fontWeight: "800",
+    fontWeight: "900",
   },
 
-  logoSubtitle: {
+  logoSubtext: {
     color: COLORS.muted,
-    fontSize: 11,
+    fontSize: 10,
+    marginTop: 1,
   },
 
-  headerActions: {
+  /* HEADER */
+
+  topHeader: {
+    height: 74,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border,
+    paddingHorizontal: 20,
     flexDirection: "row",
     alignItems: "center",
-    gap: 8,
+    justifyContent: "space-between",
+    backgroundColor: COLORS.bg,
   },
 
-  roleButton: {
+  headerRight: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+
+  patientButton: {
+    height: 43,
+    paddingHorizontal: 14,
     borderWidth: 1,
     borderColor: COLORS.border,
-    borderRadius: 14,
-    paddingHorizontal: 10,
-    paddingVertical: 8,
+    borderRadius: 15,
     flexDirection: "row",
     alignItems: "center",
+    gap: 6,
   },
 
-  roleIcon: {
-    color: COLORS.muted,
-    fontSize: 18,
-    marginRight: 5,
-  },
-
-  roleText: {
+  patientText: {
     color: COLORS.text,
-    fontSize: 13,
+    fontSize: 12,
+    fontWeight: "700",
   },
 
-  arrow: {
-    color: COLORS.muted,
-    marginLeft: 5,
-    fontSize: 18,
+  notification: {
+    marginLeft: 13,
+    position: "relative",
   },
 
-  notificationButton: {
-    width: 40,
-    height: 40,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-
-  bell: {
-    color: COLORS.text,
-    fontSize: 24,
-  },
-
-  badge: {
+  notificationBadge: {
     position: "absolute",
-    right: 0,
-    top: 0,
-    minWidth: 18,
-    height: 18,
+    right: -7,
+    top: -7,
+    width: 19,
+    height: 19,
     borderRadius: 10,
     backgroundColor: COLORS.red,
     alignItems: "center",
@@ -1797,540 +1410,507 @@ const styles = StyleSheet.create({
   },
 
   badgeText: {
-    color: COLORS.white,
+    color: "#FFFFFF",
     fontSize: 10,
-    fontWeight: "800",
+    fontWeight: "900",
   },
 
-  body: {
-    flex: 1,
-  },
-
-  content: {
-    flex: 1,
-  },
-
-  contentContainer: {
-    padding: 18,
-    paddingBottom: 100,
-  },
-
-  pageHeader: {
-    marginBottom: 22,
-  },
+  /* TITLES */
 
   pageTitle: {
     color: COLORS.text,
     fontSize: 27,
-    fontWeight: "800",
-    marginBottom: 4,
+    fontWeight: "900",
+    letterSpacing: -0.5,
   },
 
-  pageSubtitle: {
-    color: COLORS.muted,
-    fontSize: 14,
-    lineHeight: 20,
-  },
-
-  greeting: {
-    marginBottom: 18,
-  },
-
-  greetingTitle: {
-    color: COLORS.text,
-    fontSize: 28,
-    fontWeight: "800",
-  },
-
-  greetingSubtitle: {
-    color: COLORS.muted,
-    fontSize: 14,
-    marginTop: 3,
-  },
-
-  statsGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 10,
-    marginBottom: 14,
-  },
-
-  statCard: {
-    width: "48%",
-    minHeight: 150,
-    backgroundColor: COLORS.card,
-    borderRadius: 15,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    padding: 14,
-  },
-
-  statIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 10,
-  },
-
-  statIconText: {
-    fontSize: 20,
-    fontWeight: "800",
-  },
-
-  statValue: {
-    color: COLORS.text,
-    fontSize: 22,
-    fontWeight: "800",
-  },
-
-  statLabel: {
-    color: COLORS.muted,
-    fontSize: 12,
-    marginTop: 3,
-  },
-
-  statExtra: {
-    color: COLORS.muted,
-    fontSize: 11,
-    marginTop: 2,
-  },
-
-  sectionCard: {
-    backgroundColor: COLORS.card,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    padding: 16,
-    marginBottom: 14,
-  },
-
-  sectionHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 14,
-  },
-
-  sectionTitle: {
-    color: COLORS.text,
-    fontSize: 18,
-    fontWeight: "800",
-  },
-
-  sectionSubtitle: {
+  patientName: {
     color: COLORS.muted,
     fontSize: 13,
     marginTop: 4,
   },
 
-  viewAll: {
+  greeting: {
     color: COLORS.text,
-    fontWeight: "700",
+    fontSize: 27,
+    fontWeight: "900",
+    marginTop: 31,
+  },
+
+  description: {
+    color: COLORS.muted,
     fontSize: 13,
+    marginTop: 4,
   },
 
-  doseRow: {
+  /* STAT GRID */
+
+  statsGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "space-between",
+    marginTop: 18,
+  },
+
+  smallStatCard: {
+    width: "48%",
+    minHeight: 150,
+    backgroundColor: COLORS.card,
     borderWidth: 1,
     borderColor: COLORS.border,
-    borderRadius: 13,
-    padding: 13,
-    flexDirection: "row",
-    alignItems: "center",
+    borderRadius: 15,
+    padding: 14,
+    marginBottom: 10,
   },
 
-  doseItem: {
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    borderRadius: 13,
-    padding: 12,
-    marginBottom: 9,
-    flexDirection: "row",
-    alignItems: "center",
-  },
-
-  medIcon: {
-    width: 42,
-    height: 42,
-    borderRadius: 12,
-    backgroundColor: COLORS.tealDark,
+  statIconYellow: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    backgroundColor: "#263426",
     alignItems: "center",
     justifyContent: "center",
-    marginRight: 11,
   },
 
-  medIconText: {
-    color: COLORS.teal,
-    fontSize: 25,
+  statIconGreen: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    backgroundColor: "#0D4A37",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  statIconBlue: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    backgroundColor: "#0C454B",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  statBig: {
+    color: COLORS.text,
+    fontSize: 22,
+    fontWeight: "900",
+    marginTop: 12,
+  },
+
+  statLabel: {
+    color: "#79A7AA",
+    fontSize: 11,
+    marginTop: 3,
+    lineHeight: 15,
+  },
+
+  /* CARDS */
+
+  largeCard: {
+    backgroundColor: COLORS.card,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    borderRadius: 15,
+    padding: 16,
+    marginTop: 9,
+  },
+
+  cardHeaderRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+  },
+
+  cardTitle: {
+    color: COLORS.text,
+    fontSize: 17,
+    fontWeight: "900",
+  },
+
+  cardSubtitle: {
+    color: "#78A2A5",
+    fontSize: 12,
+    marginTop: 4,
+  },
+
+  viewAll: {
+    color: COLORS.text,
+    fontSize: 11,
+    fontWeight: "800",
+    marginTop: 6,
+  },
+
+  doseCard: {
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    borderRadius: 14,
+    padding: 12,
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 14,
+  },
+
+  medicineIcon: {
+    width: 43,
+    height: 43,
+    borderRadius: 11,
+    backgroundColor: "#075E63",
+    alignItems: "center",
+    justifyContent: "center",
   },
 
   doseInfo: {
     flex: 1,
+    marginLeft: 12,
   },
 
   medName: {
     color: COLORS.text,
     fontSize: 15,
-    fontWeight: "800",
+    fontWeight: "900",
   },
 
   medDose: {
-    color: COLORS.muted,
-    fontWeight: "500",
+    color: "#8EAFB1",
+    fontWeight: "600",
   },
 
-  doseDetails: {
-    color: COLORS.muted,
-    fontSize: 12,
-    marginTop: 5,
+  medTime: {
+    color: "#80A5A8",
+    fontSize: 11,
+    marginTop: 4,
   },
 
   dueBadge: {
+    backgroundColor: "#12373C",
     borderWidth: 1,
     borderColor: COLORS.border,
-    backgroundColor: COLORS.card2,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 20,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 15,
   },
 
   dueText: {
     color: COLORS.text,
-    fontSize: 11,
-    fontWeight: "700",
+    fontSize: 10,
+    fontWeight: "800",
   },
+
+  /* REFILL */
 
   refillRow: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 13,
+    marginTop: 14,
   },
 
-  smallMedIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 11,
-    backgroundColor: COLORS.card2,
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: 10,
-  },
-
-  smallMedIconText: {
-    color: COLORS.muted,
-    fontSize: 22,
-  },
-
-  refillName: {
-    color: COLORS.text,
-    fontWeight: "800",
-    fontSize: 14,
-  },
-
-  refillDays: {
-    color: COLORS.muted,
-    fontSize: 12,
-    marginTop: 3,
+  refillInfo: {
+    flex: 1,
+    marginLeft: 10,
   },
 
   refillBadge: {
-    backgroundColor: "#382126",
-    paddingHorizontal: 10,
-    paddingVertical: 5,
+    backgroundColor: "#5A2028",
     borderRadius: 15,
+    paddingHorizontal: 11,
+    paddingVertical: 6,
   },
 
-  refillBadgeText: {
+  refillText: {
     color: COLORS.red,
-    fontSize: 11,
-    fontWeight: "800",
+    fontSize: 10,
+    fontWeight: "900",
   },
 
   manageButton: {
-    backgroundColor: COLORS.card2,
+    backgroundColor: "#10383D",
+    height: 43,
     borderRadius: 9,
-    padding: 12,
     alignItems: "center",
-    marginTop: 5,
+    justifyContent: "center",
+    marginTop: 15,
   },
 
   manageText: {
     color: COLORS.text,
-    fontWeight: "700",
+    fontSize: 12,
+    fontWeight: "900",
   },
 
+  /* ATTENTION */
+
   attentionCard: {
-    backgroundColor: "#151F1C",
+    backgroundColor: "#14211D",
     borderWidth: 1,
-    borderColor: "#26352E",
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 14,
+    borderColor: "#2B3C32",
+    borderRadius: 15,
+    padding: 15,
+    marginTop: 14,
   },
 
   attentionTitle: {
     color: COLORS.yellow,
-    fontSize: 16,
-    fontWeight: "800",
+    fontSize: 15,
+    fontWeight: "900",
   },
 
   attentionText: {
     color: COLORS.muted,
-    marginTop: 7,
-    lineHeight: 20,
+    fontSize: 11,
+    marginTop: 5,
   },
 
+  /* BOTTOM NAV */
+
   bottomNav: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    height: 72,
-    backgroundColor: "#081B1F",
+    height: 74,
+    backgroundColor: "#07191C",
     borderTopWidth: 1,
     borderTopColor: COLORS.border,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-around",
-    paddingHorizontal: 5,
-  },
-
-  navButton: {
-    alignItems: "center",
-    justifyContent: "center",
-    minWidth: 55,
-    height: 58,
-    borderRadius: 10,
     paddingHorizontal: 7,
   },
 
-  navButtonActive: {
+  navItem: {
+    width: 55,
+    height: 58,
+    borderRadius: 10,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  navItemActive: {
     backgroundColor: COLORS.teal,
   },
 
-  navIcon: {
-    color: COLORS.muted,
-    fontSize: 21,
-  },
-
-  navIconActive: {
-    color: COLORS.bg,
-  },
-
-  navLabel: {
-    color: COLORS.muted,
+  navText: {
+    color: "#78A5A8",
     fontSize: 9,
-    marginTop: 3,
-    fontWeight: "700",
+    fontWeight: "600",
+    marginTop: 4,
   },
 
-  navLabelActive: {
+  navTextActive: {
     color: COLORS.bg,
+    fontWeight: "900",
   },
 
-  primaryButton: {
-    backgroundColor: COLORS.teal,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    borderRadius: 11,
-    alignSelf: "flex-start",
-    marginTop: 10,
-  },
-
-  primaryButtonText: {
-    color: COLORS.bg,
-    fontWeight: "800",
-  },
+  /* FILTER */
 
   filterRow: {
     flexDirection: "row",
-    flexWrap: "wrap",
+    marginTop: 21,
+    marginBottom: 13,
     gap: 6,
-    marginBottom: 14,
   },
 
   filterButton: {
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 15,
-    backgroundColor: COLORS.card2,
+    backgroundColor: "#11343A",
+    paddingHorizontal: 14,
+    height: 33,
+    borderRadius: 17,
+    justifyContent: "center",
   },
 
-  filterButtonActive: {
+  filterActive: {
     backgroundColor: COLORS.teal,
   },
 
   filterText: {
-    color: COLORS.muted,
-    fontSize: 12,
-    fontWeight: "700",
+    color: "#91AEB0",
+    fontSize: 10,
+    fontWeight: "800",
   },
 
   filterTextActive: {
     color: COLORS.bg,
   },
 
-  statusTaken: {
-    backgroundColor: COLORS.teal,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 18,
+  /* DOSE GROUP */
+
+  doseGroup: {
+    backgroundColor: COLORS.card,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    borderRadius: 15,
+    padding: 16,
+    marginBottom: 13,
   },
 
-  statusTakenText: {
-    color: COLORS.bg,
-    fontSize: 11,
-    fontWeight: "800",
+  doseGroupTitle: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 12,
+  },
+
+  timeTitle: {
+    color: COLORS.text,
+    fontSize: 17,
+    fontWeight: "900",
+  },
+
+  groupCount: {
+    color: COLORS.muted,
+    fontSize: 12,
+    marginLeft: 4,
+  },
+
+  doseListCard: {
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    borderRadius: 13,
+    padding: 12,
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 9,
+  },
+
+  statusBadge: {
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: 15,
+  },
+
+  statusTaken: {
+    backgroundColor: COLORS.teal,
   },
 
   statusMissed: {
-    backgroundColor: "#3A2025",
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 18,
+    backgroundColor: "#572329",
+  },
+
+  statusUpcoming: {
+    backgroundColor: "#143A3E",
+  },
+
+  statusText: {
+    color: COLORS.bg,
+    fontSize: 10,
+    fontWeight: "900",
   },
 
   statusMissedText: {
     color: COLORS.red,
-    fontSize: 11,
-    fontWeight: "800",
   },
 
-  statusSkipped: {
-    backgroundColor: "#2C2C20",
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 18,
+  /* MEDICATIONS */
+
+  addMedication: {
+    alignSelf: "flex-start",
+    backgroundColor: COLORS.teal,
+    borderRadius: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 11,
+    marginTop: 13,
+    marginBottom: 8,
   },
 
-  statusSkippedText: {
-    color: COLORS.yellow,
-    fontSize: 11,
-    fontWeight: "800",
+  addMedicationText: {
+    color: COLORS.bg,
+    fontSize: 13,
+    fontWeight: "900",
   },
 
   medicationCard: {
     backgroundColor: COLORS.card,
-    borderRadius: 16,
     borderWidth: 1,
     borderColor: COLORS.border,
+    borderRadius: 16,
     padding: 16,
-    marginBottom: 14,
+    marginTop: 10,
   },
 
-  medicationHeader: {
+  medicationTop: {
     flexDirection: "row",
     alignItems: "center",
-  },
-
-  bigMedIcon: {
-    width: 52,
-    height: 52,
-    borderRadius: 14,
-    backgroundColor: COLORS.tealDark,
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: 12,
-  },
-
-  bigMedIconText: {
-    color: COLORS.teal,
-    fontSize: 29,
-  },
-
-  medicationTitleBox: {
-    flex: 1,
   },
 
   medicationName: {
     color: COLORS.text,
-    fontSize: 18,
-    fontWeight: "800",
+    fontSize: 19,
+    fontWeight: "900",
+    marginLeft: 11,
   },
 
   medicationDose: {
-    color: COLORS.muted,
-    fontWeight: "500",
+    color: "#89AAAD",
   },
 
-  medicationFrequency: {
-    color: COLORS.muted,
-    fontSize: 13,
+  medicationInstruction: {
+    color: "#89AAAD",
+    fontSize: 12,
+    marginLeft: 11,
     marginTop: 4,
   },
 
-  instruction: {
-    color: COLORS.muted,
-    fontSize: 13,
-    lineHeight: 20,
-    marginTop: 16,
+  medicationDescription: {
+    color: "#8EABAD",
+    fontSize: 12,
+    marginTop: 18,
   },
 
-  timeRow: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 7,
-    marginTop: 12,
-  },
-
-  timePill: {
-    backgroundColor: COLORS.card2,
-    borderRadius: 15,
-    paddingHorizontal: 10,
+  timeBadge: {
+    backgroundColor: "#0A4147",
+    alignSelf: "flex-start",
+    paddingHorizontal: 9,
     paddingVertical: 6,
+    borderRadius: 12,
+    marginTop: 10,
   },
 
-  timeText: {
+  timeBadgeText: {
     color: COLORS.text,
-    fontSize: 11,
-    fontWeight: "700",
+    fontSize: 10,
+    fontWeight: "800",
   },
 
   prescribed: {
-    color: COLORS.muted,
-    fontSize: 12,
-    marginTop: 13,
+    color: "#789A9D",
+    fontSize: 10,
+    marginTop: 14,
   },
 
   supplyBox: {
-    backgroundColor: COLORS.card2,
-    borderRadius: 11,
+    backgroundColor: "#10363A",
+    borderRadius: 10,
     padding: 12,
-    marginTop: 14,
+    marginTop: 13,
   },
 
   supplyHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
-    alignItems: "center",
   },
 
   supplyTitle: {
     color: COLORS.text,
-    fontWeight: "800",
+    fontSize: 11,
+    fontWeight: "900",
   },
 
   supplyValue: {
     color: COLORS.text,
-    fontSize: 12,
-    fontWeight: "700",
+    fontSize: 11,
+    fontWeight: "800",
   },
 
   progressBackground: {
-    height: 5,
-    backgroundColor: "#1A3034",
+    height: 6,
+    backgroundColor: "#183D40",
     borderRadius: 5,
+    marginTop: 10,
     overflow: "hidden",
-    marginTop: 9,
   },
 
-  progress: {
+  progressFill: {
     height: "100%",
-    borderRadius: 5,
     backgroundColor: COLORS.teal,
+    borderRadius: 5,
   },
 
-  actionRow: {
+  medButtons: {
     flexDirection: "row",
     gap: 8,
     marginTop: 13,
@@ -2338,447 +1918,320 @@ const styles = StyleSheet.create({
 
   refillButton: {
     backgroundColor: COLORS.teal,
+    paddingHorizontal: 15,
+    paddingVertical: 10,
     borderRadius: 9,
-    paddingHorizontal: 13,
-    paddingVertical: 9,
   },
 
-  refillText: {
+  refillButtonText: {
     color: COLORS.bg,
-    fontWeight: "800",
+    fontSize: 12,
+    fontWeight: "900",
   },
 
   editButton: {
     borderWidth: 1,
     borderColor: COLORS.border,
+    paddingHorizontal: 15,
+    paddingVertical: 10,
     borderRadius: 9,
-    paddingHorizontal: 13,
-    paddingVertical: 9,
   },
 
-  editText: {
+  editButtonText: {
     color: COLORS.text,
-    fontWeight: "700",
+    fontSize: 12,
+    fontWeight: "900",
   },
 
-  addMedicationBottom: {
-    borderWidth: 1,
-    borderColor: COLORS.teal,
-    borderRadius: 11,
-    padding: 14,
-    alignItems: "center",
-    marginBottom: 20,
-  },
-
-  addMedicationBottomText: {
-    color: COLORS.teal,
-    fontWeight: "800",
-  },
-
-  adherenceGrid: {
-    gap: 14,
-  },
+  /* STATS */
 
   adherenceCard: {
     backgroundColor: COLORS.card,
     borderWidth: 1,
     borderColor: COLORS.border,
-    borderRadius: 16,
-    padding: 20,
+    borderRadius: 15,
+    marginTop: 22,
+    padding: 22,
     alignItems: "center",
   },
 
-  centerTitle: {
+  adherenceTitle: {
     color: COLORS.text,
-    fontSize: 19,
-    fontWeight: "800",
+    fontSize: 17,
+    fontWeight: "900",
   },
 
-  centerSubtitle: {
+  adherenceSubtitle: {
     color: COLORS.muted,
-    textAlign: "center",
-    marginTop: 4,
+    fontSize: 12,
+    marginTop: 5,
   },
 
-  circle: {
+  circleContainer: {
+    marginTop: 20,
+  },
+
+  outerCircle: {
     width: 190,
     height: 190,
-    borderRadius: 100,
+    borderRadius: 95,
     borderWidth: 12,
-    borderColor: COLORS.yellow,
-    marginTop: 20,
+    borderColor: "#FFB72F",
     alignItems: "center",
     justifyContent: "center",
   },
 
-  circleValue: {
-    color: COLORS.text,
-    fontSize: 30,
-    fontWeight: "800",
-  },
-
-  circleLabel: {
-    color: COLORS.muted,
-    fontSize: 12,
-  },
-
-  outcomeRow: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-    width: "100%",
-    marginTop: 20,
-  },
-
-  outcome: {
+  innerCircle: {
     alignItems: "center",
   },
 
-  outcomeValue: {
+  percent: {
+    color: COLORS.text,
+    fontSize: 30,
+    fontWeight: "900",
+  },
+
+  percentLabel: {
+    color: COLORS.muted,
+    fontSize: 11,
+  },
+
+  outcomeRow: {
+    width: "100%",
+    flexDirection: "row",
+    justifyContent: "space-around",
+    marginTop: 21,
+  },
+
+  outcomeNumber: {
     fontSize: 20,
-    fontWeight: "800",
+    fontWeight: "900",
+    textAlign: "center",
   },
 
   outcomeLabel: {
     color: COLORS.muted,
-    fontSize: 12,
-    marginTop: 3,
+    fontSize: 10,
+    textAlign: "center",
+    marginTop: 4,
   },
 
   chartCard: {
     backgroundColor: COLORS.card,
     borderWidth: 1,
     borderColor: COLORS.border,
-    borderRadius: 16,
+    borderRadius: 15,
+    marginTop: 14,
     padding: 16,
   },
 
-  chart: {
-    height: 180,
-    marginTop: 18,
-    flexDirection: "row",
-    alignItems: "flex-end",
-    justifyContent: "space-between",
+  chartTitle: {
+    color: COLORS.text,
+    fontSize: 17,
+    fontWeight: "900",
   },
 
-  barContainer: {
-    height: "100%",
-    width: 15,
+  chartSubtitle: {
+    color: COLORS.muted,
+    fontSize: 11,
+    marginTop: 5,
+  },
+
+  barChart: {
+    height: 180,
+    marginTop: 17,
+    flexDirection: "row",
+    alignItems: "flex-end",
+    justifyContent: "space-around",
+  },
+
+  barColumn: {
+    height: 150,
     justifyContent: "flex-end",
     alignItems: "center",
   },
 
   bar: {
     width: 11,
-    maxHeight: "100%",
+    backgroundColor: COLORS.teal,
+    borderRadius: 6,
+  },
+
+  barLabel: {
+    color: "#63888C",
+    fontSize: 8,
+    marginTop: 6,
+  },
+
+  greenCircleContainer: {
+    alignItems: "center",
+    marginTop: 18,
+    marginBottom: 2,
+  },
+
+  greenOuterCircle: {
+    width: 170,
+    height: 170,
+    borderRadius: 85,
+    borderWidth: 12,
+    borderColor: COLORS.green,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  greenInnerCircle: {
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  doseNumber: {
+    color: COLORS.text,
+    fontSize: 25,
+    fontWeight: "900",
+  },
+
+  medAdherenceCard: {
+    backgroundColor: COLORS.card,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    borderRadius: 15,
+    marginTop: 14,
+    padding: 16,
+  },
+
+  adherenceRow: {
+    marginTop: 18,
+  },
+
+  adherenceRowHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+
+  adherenceMedName: {
+    color: COLORS.text,
+    fontSize: 13,
+    fontWeight: "900",
+  },
+
+  adherenceValue: {
+    color: COLORS.teal,
+    fontSize: 13,
+    fontWeight: "900",
+  },
+
+  adherenceBarBackground: {
+    height: 5,
+    backgroundColor: "#19383B",
+    borderRadius: 5,
+    marginTop: 9,
+    overflow: "hidden",
+  },
+
+  adherenceBar: {
+    height: "100%",
     backgroundColor: COLORS.teal,
     borderRadius: 5,
   },
 
-  barLabel: {
-    color: COLORS.muted,
-    fontSize: 8,
-    marginTop: 4,
+  trackedText: {
+    color: "#729396",
+    fontSize: 9,
+    marginTop: 6,
   },
 
-  donut: {
-    width: 170,
-    height: 170,
-    borderRadius: 90,
-    borderWidth: 24,
-    borderColor: COLORS.green,
-    alignSelf: "center",
-    marginTop: 18,
-    alignItems: "center",
-    justifyContent: "center",
-  },
+  /* REPORTS */
 
-  donutInner: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    backgroundColor: COLORS.card,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-
-  donutText: {
+  reportTitle: {
     color: COLORS.text,
-    fontSize: 26,
-    fontWeight: "800",
+    fontSize: 27,
+    fontWeight: "900",
+    marginTop: 30,
   },
 
-  adherenceMedication: {
-    marginTop: 18,
-  },
-
-  adherenceMedicationHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-  },
-
-  adherencePercent: {
-    color: COLORS.teal,
-    fontWeight: "800",
-  },
-
-  tracked: {
-    color: COLORS.muted,
-    fontSize: 11,
-    marginTop: 5,
-  },
-
-  historyRow: {
-    minHeight: 58,
-    borderTopWidth: 1,
-    borderTopColor: COLORS.border,
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 9,
-  },
-
-  historyDate: {
-    width: 55,
-  },
-
-  historyDateText: {
-    color: COLORS.text,
-    fontWeight: "800",
-    fontSize: 12,
-  },
-
-  historyTime: {
-    width: 72,
-  },
-
-  historyMuted: {
-    color: COLORS.muted,
-    fontSize: 11,
-  },
-
-  historyMedicine: {
-    flex: 1,
-    paddingRight: 5,
-  },
-
-  alertTop: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-    marginBottom: 15,
-  },
-
-  outlineButton: {
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    borderRadius: 10,
-    paddingHorizontal: 10,
-    paddingVertical: 9,
-  },
-
-  outlineText: {
-    color: COLORS.text,
-    fontSize: 11,
-    fontWeight: "800",
-  },
-
-  infoAlert: {
-    backgroundColor: COLORS.card,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    borderRadius: 13,
-    padding: 14,
-    marginBottom: 14,
-  },
-
-  infoAlertTitle: {
-    color: COLORS.text,
-    fontSize: 14,
-    fontWeight: "800",
-  },
-
-  infoAlertText: {
+  reportSubtitle: {
     color: COLORS.muted,
     fontSize: 12,
-    lineHeight: 18,
-    marginTop: 5,
-  },
-
-  alertItem: {
-    flexDirection: "row",
-    borderWidth: 1,
-    borderRadius: 13,
-    padding: 12,
-    marginTop: 10,
-  },
-
-  alertIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 11,
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: 10,
-  },
-
-  alertIconText: {
-    fontSize: 19,
-    fontWeight: "800",
-  },
-
-  alertTitle: {
-    color: COLORS.text,
-    fontWeight: "800",
-    fontSize: 14,
-  },
-
-  alertDescription: {
-    color: COLORS.muted,
-    fontSize: 12,
-    lineHeight: 18,
     marginTop: 3,
   },
 
-  patientTag: {
-    alignSelf: "flex-start",
+  exportButton: {
+    height: 38,
     borderWidth: 1,
     borderColor: COLORS.border,
-    borderRadius: 14,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
+    borderRadius: 9,
+    justifyContent: "center",
+    paddingHorizontal: 12,
     marginTop: 7,
   },
 
-  patientTagText: {
+  exportText: {
     color: COLORS.text,
     fontSize: 10,
-    fontWeight: "700",
-  },
-
-  preferenceRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginTop: 17,
-  },
-
-  preferenceIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 11,
-    backgroundColor: COLORS.card2,
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: 10,
-  },
-
-  preferenceIconText: {
-    color: COLORS.muted,
-  },
-
-  preferenceTitle: {
-    color: COLORS.text,
-    fontWeight: "800",
-    fontSize: 13,
-  },
-
-  preferenceDescription: {
-    color: COLORS.muted,
-    fontSize: 11,
-    marginTop: 3,
-  },
-
-  switch: {
-    width: 38,
-    height: 22,
-    borderRadius: 12,
-    backgroundColor: "#26393D",
-    padding: 3,
-  },
-
-  switchOn: {
-    backgroundColor: COLORS.teal,
-  },
-
-  switchThumb: {
-    width: 16,
-    height: 16,
-    borderRadius: 8,
-    backgroundColor: COLORS.muted,
-  },
-
-  switchThumbOn: {
-    backgroundColor: COLORS.white,
-    marginLeft: 16,
-  },
-
-  reportHeader: {
-    marginBottom: 15,
+    fontWeight: "900",
   },
 
   reportCard: {
     backgroundColor: COLORS.card,
     borderWidth: 1,
     borderColor: COLORS.border,
-    borderRadius: 16,
+    borderRadius: 15,
+    marginTop: 15,
     padding: 16,
-    marginBottom: 14,
   },
 
-  reportPatientHeader: {
-    marginBottom: 15,
-  },
-
-  nameRow: {
+  reportNameRow: {
     flexDirection: "row",
-    flexWrap: "wrap",
     alignItems: "center",
-    gap: 7,
   },
 
-  reportPatientName: {
+  reportName: {
     color: COLORS.text,
-    fontSize: 17,
-    fontWeight: "800",
+    fontSize: 15,
+    fontWeight: "900",
   },
 
   adherenceBadge: {
     backgroundColor: COLORS.teal,
+    borderRadius: 12,
     paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 13,
+    paddingVertical: 5,
+    marginLeft: 8,
   },
 
   adherenceBadgeText: {
     color: COLORS.bg,
-    fontSize: 10,
-    fontWeight: "800",
+    fontSize: 8,
+    fontWeight: "900",
   },
 
-  reportPatientDetails: {
+  reportDetails: {
     color: COLORS.muted,
-    fontSize: 11,
-    lineHeight: 17,
-    marginTop: 5,
+    fontSize: 10,
+    lineHeight: 16,
+    marginTop: 7,
   },
 
   generateButton: {
     alignSelf: "flex-start",
-    backgroundColor: COLORS.card2,
+    backgroundColor: "#103A3F",
     borderRadius: 9,
-    paddingHorizontal: 11,
-    paddingVertical: 8,
-    marginTop: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 9,
+    marginTop: 12,
   },
 
   generateText: {
     color: COLORS.text,
-    fontSize: 11,
-    fontWeight: "800",
+    fontSize: 10,
+    fontWeight: "900",
   },
 
   reportStats: {
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: 8,
+    justifyContent: "space-between",
+    marginTop: 14,
   },
 
   reportStat: {
@@ -2787,153 +2240,153 @@ const styles = StyleSheet.create({
     borderColor: COLORS.border,
     borderRadius: 10,
     padding: 11,
+    marginBottom: 7,
   },
 
   reportStatTitle: {
     color: COLORS.muted,
-    fontSize: 10,
+    fontSize: 9,
   },
 
   reportStatValue: {
     color: COLORS.text,
     fontSize: 20,
-    fontWeight: "800",
-    marginTop: 5,
+    fontWeight: "900",
+    marginTop: 7,
   },
 
   refillsTitle: {
     color: COLORS.text,
-    fontSize: 14,
-    fontWeight: "800",
-    marginTop: 16,
-    marginBottom: 8,
+    fontSize: 13,
+    fontWeight: "900",
+    marginTop: 10,
   },
 
   refillTags: {
     flexDirection: "row",
     flexWrap: "wrap",
     gap: 7,
+    marginTop: 8,
   },
 
-  tag: {
-    backgroundColor: COLORS.card2,
+  refillTag: {
     borderWidth: 1,
     borderColor: COLORS.border,
     borderRadius: 15,
-    paddingHorizontal: 9,
-    paddingVertical: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 7,
   },
 
-  tagText: {
+  refillTagText: {
     color: COLORS.text,
-    fontSize: 10,
-    fontWeight: "700",
+    fontSize: 9,
+    fontWeight: "800",
   },
 
-  modalOverlay: {
+  /* LOGIN */
+
+  loginSafe: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.7)",
-    justifyContent: "flex-end",
+    backgroundColor: COLORS.bg,
   },
 
-  modal: {
-    backgroundColor: COLORS.card,
-    borderTopLeftRadius: 22,
-    borderTopRightRadius: 22,
-    padding: 20,
+  loginContent: {
+    flexGrow: 1,
+    paddingHorizontal: 35,
+    paddingTop: 55,
+    paddingBottom: 30,
+    justifyContent: "center",
+  },
+
+  loginLogo: {
+    alignItems: "center",
+    marginBottom: 45,
+  },
+
+  loginTitle: {
+    color: COLORS.text,
+    fontSize: 27,
+    fontWeight: "900",
+    textAlign: "center",
+  },
+
+  loginSubtitle: {
+    color: COLORS.muted,
+    fontSize: 12,
+    lineHeight: 18,
+    textAlign: "center",
+    marginTop: 9,
+    marginBottom: 35,
+  },
+
+  loginLabel: {
+    color: COLORS.text,
+    fontSize: 11,
+    fontWeight: "900",
+    marginBottom: 8,
+  },
+
+  loginInput: {
+    height: 45,
     borderWidth: 1,
     borderColor: COLORS.border,
-  },
-
-  modalTitle: {
+    borderRadius: 9,
+    backgroundColor: "#0B2428",
     color: COLORS.text,
-    fontSize: 22,
-    fontWeight: "800",
+    paddingHorizontal: 13,
+    fontSize: 12,
     marginBottom: 18,
   },
 
-  roleOption: {
-    flexDirection: "row",
-    alignItems: "center",
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    borderRadius: 13,
-    padding: 14,
-    marginBottom: 9,
-  },
-
-  roleOptionActive: {
-    borderColor: COLORS.teal,
-    backgroundColor: COLORS.tealDark,
-  },
-
-  roleOptionTitle: {
-    color: COLORS.text,
-    fontSize: 15,
+  forgotPassword: {
+    color: COLORS.teal,
+    fontSize: 10,
     fontWeight: "800",
+    textAlign: "right",
+    marginTop: -7,
+    marginBottom: 20,
   },
 
-  roleOptionDescription: {
-    color: COLORS.muted,
-    fontSize: 11,
-    marginTop: 3,
-  },
-
-  radio: {
-    width: 21,
-    height: 21,
-    borderRadius: 11,
-    borderWidth: 2,
-    borderColor: COLORS.muted,
+  loginButton: {
+    height: 45,
+    backgroundColor: COLORS.teal,
+    borderRadius: 9,
     alignItems: "center",
     justifyContent: "center",
   },
 
-  radioActive: {
-    borderColor: COLORS.teal,
+  loginButtonText: {
+    color: COLORS.bg,
+    fontSize: 13,
+    fontWeight: "900",
   },
 
-  radioDot: {
-    width: 11,
-    height: 11,
-    borderRadius: 6,
-    backgroundColor: COLORS.teal,
+  loginDivider: {
+    height: 1,
+    backgroundColor: COLORS.border,
+    marginTop: 27,
+    marginBottom: 15,
   },
 
-  inputLabel: {
-    color: COLORS.text,
-    fontSize: 12,
-    fontWeight: "700",
-    marginBottom: 6,
-    marginTop: 5,
+  noAccount: {
+    color: COLORS.muted,
+    fontSize: 10,
+    textAlign: "center",
   },
 
-  input: {
-    backgroundColor: COLORS.card2,
+  createButton: {
+    height: 43,
     borderWidth: 1,
     borderColor: COLORS.border,
-    borderRadius: 10,
+    borderRadius: 9,
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 12,
+  },
+
+  createButtonText: {
     color: COLORS.text,
-    paddingHorizontal: 12,
-    paddingVertical: 11,
-    marginBottom: 8,
-  },
-
-  primaryButtonLarge: {
-    backgroundColor: COLORS.teal,
-    borderRadius: 11,
-    padding: 14,
-    alignItems: "center",
-    marginTop: 10,
-  },
-
-  cancelButton: {
-    alignItems: "center",
-    padding: 14,
-  },
-
-  cancelText: {
-    color: COLORS.muted,
-    fontWeight: "700",
+    fontSize: 11,
+    fontWeight: "900",
   },
 });
