@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import {
   SafeAreaView,
   View,
@@ -10,13 +10,13 @@ import {
   StatusBar,
   KeyboardAvoidingView,
   Platform,
+  Alert,
 } from "react-native";
-
 import { Ionicons } from "@expo/vector-icons";
 
-/* =========================================================
-   COLORS
-========================================================= */
+// =========================================================
+// COLORS
+// =========================================================
 
 const COLORS = {
   bg: "#061A1D",
@@ -33,9 +33,9 @@ const COLORS = {
   black: "#000000",
 };
 
-/* =========================================================
-   LOGO
-========================================================= */
+// =========================================================
+// LOGO
+// =========================================================
 
 function Logo() {
   return (
@@ -44,7 +44,7 @@ function Logo() {
         <Ionicons
           name="heart-outline"
           size={25}
-          color="#061A1D"
+          color={COLORS.bg}
         />
       </View>
 
@@ -58,20 +58,17 @@ function Logo() {
   );
 }
 
-/* =========================================================
-   TOP HEADER
-========================================================= */
+// =========================================================
+// TOP HEADER
+// =========================================================
 
-function TopHeader({ onLogout }) {
+function TopHeader() {
   return (
     <View style={styles.topHeader}>
       <Logo />
 
       <View style={styles.headerRight}>
-        <TouchableOpacity
-          style={styles.patientButton}
-          onPress={() => {}}
-        >
+        <TouchableOpacity style={styles.patientButton}>
           <Ionicons
             name="person-outline"
             size={14}
@@ -89,10 +86,7 @@ function TopHeader({ onLogout }) {
           />
         </TouchableOpacity>
 
-        <TouchableOpacity
-          style={styles.notification}
-          onPress={() => {}}
-        >
+        <TouchableOpacity style={styles.notification}>
           <Ionicons
             name="notifications-outline"
             size={24}
@@ -108,9 +102,9 @@ function TopHeader({ onLogout }) {
   );
 }
 
-/* =========================================================
-   BOTTOM NAVIGATION
-========================================================= */
+// =========================================================
+// BOTTOM NAVIGATION
+// =========================================================
 
 function BottomNav({ active, setActive }) {
   const tabs = [
@@ -180,16 +174,16 @@ function BottomNav({ active, setActive }) {
   );
 }
 
-/* =========================================================
-   MEDICATION DATA
-========================================================= */
+// =========================================================
+// MEDICATION DATA
+// =========================================================
 
 const medications = [
   {
     name: "Lisinopril",
     dose: "10 mg",
     instruction: "Tablet · Once Daily",
-    time: "08:00",
+    time: "08:00 AM",
     supply: 24,
     total: 30,
     days: 24,
@@ -198,7 +192,7 @@ const medications = [
     name: "Metformin",
     dose: "500 mg",
     instruction: "Tablet · Twice Daily",
-    time: "08:00",
+    time: "08:00 AM",
     supply: 9,
     total: 14,
     days: 5,
@@ -207,7 +201,7 @@ const medications = [
     name: "Apixaban",
     dose: "5 mg",
     instruction: "Tablet · Twice Daily",
-    time: "08:00",
+    time: "08:00 AM",
     supply: 5,
     total: 8,
     days: 3,
@@ -223,9 +217,9 @@ const medications = [
   },
 ];
 
-/* =========================================================
-   MEDICATION ICON
-========================================================= */
+// =========================================================
+// MEDICATION ICON
+// =========================================================
 
 function MedicineIcon() {
   return (
@@ -239,9 +233,9 @@ function MedicineIcon() {
   );
 }
 
-/* =========================================================
-   HOME SCREEN
-========================================================= */
+// =========================================================
+// HOME SCREEN
+// =========================================================
 
 function HomeScreen({ setActive }) {
   return (
@@ -319,7 +313,8 @@ function HomeScreen({ setActive }) {
           </Text>
 
           <Text style={styles.statLabel}>
-            Next dose{"\n"}Atorvastatin
+            Next dose{"\n"}
+            Atorvastatin
           </Text>
         </View>
 
@@ -452,13 +447,12 @@ function HomeScreen({ setActive }) {
   );
 }
 
-/* =========================================================
-   DOSES SCREEN
-========================================================= */
+// =========================================================
+// DOSES SCREEN
+// =========================================================
 
 function DosesScreen() {
-  const [filter, setFilter] =
-    useState("All");
+  const [filter, setFilter] = useState("All");
 
   const doses = [
     {
@@ -481,6 +475,21 @@ function DosesScreen() {
     },
   ];
 
+  const afternoonDoses = [
+    {
+      name: "Metformin",
+      dose: "500 mg",
+      status: "Taken",
+      time: "8:00 PM",
+    },
+    {
+      name: "Apixaban",
+      dose: "5 mg",
+      status: "Upcoming",
+      time: "8:00 PM",
+    },
+  ];
+
   return (
     <ScrollView
       style={styles.screen}
@@ -494,8 +503,6 @@ function DosesScreen() {
       <Text style={styles.patientName}>
         Eleanor Whitfield
       </Text>
-
-      {/* FILTER */}
 
       <View style={styles.filterRow}>
         {["All", "Upcoming", "Taken", "Missed"].map(
@@ -523,47 +530,44 @@ function DosesScreen() {
         )}
       </View>
 
-      {/* MORNING */}
-
       <DoseGroup
         title="8:00 AM"
         count="3 medications"
         doses={doses}
+        filter={filter}
       />
-
-      {/* AFTERNOON */}
 
       <DoseGroup
         title="8:00 PM"
         count="2 medications"
-        doses={[
-          {
-            name: "Metformin",
-            dose: "500 mg",
-            status: "Taken",
-            time: "8:00 PM",
-          },
-          {
-            name: "Apixaban",
-            dose: "5 mg",
-            status: "Upcoming",
-            time: "8:00 PM",
-          },
-        ]}
+        doses={afternoonDoses}
+        filter={filter}
       />
     </ScrollView>
   );
 }
 
-/* =========================================================
-   DOSE GROUP
-========================================================= */
+// =========================================================
+// DOSE GROUP
+// =========================================================
 
 function DoseGroup({
   title,
   count,
   doses,
+  filter,
 }) {
+  const filtered =
+    filter === "All"
+      ? doses
+      : doses.filter(
+          (dose) => dose.status === filter
+        );
+
+  if (filtered.length === 0) {
+    return null;
+  }
+
   return (
     <View style={styles.doseGroup}>
       <View style={styles.doseGroupTitle}>
@@ -576,7 +580,7 @@ function DoseGroup({
         </Text>
       </View>
 
-      {doses.map((dose) => (
+      {filtered.map((dose) => (
         <View
           key={dose.name + dose.time}
           style={styles.doseListCard}
@@ -622,9 +626,9 @@ function DoseGroup({
   );
 }
 
-/* =========================================================
-   MEDICATIONS SCREEN
-========================================================= */
+// =========================================================
+// MEDICATIONS SCREEN
+// =========================================================
 
 function MedicationsScreen() {
   return (
@@ -641,7 +645,9 @@ function MedicationsScreen() {
         Eleanor Whitfield
       </Text>
 
-      <TouchableOpacity style={styles.addMedication}>
+      <TouchableOpacity
+        style={styles.addMedication}
+      >
         <Text style={styles.addMedicationText}>
           + Add medication
         </Text>
@@ -657,23 +663,20 @@ function MedicationsScreen() {
   );
 }
 
-/* =========================================================
-   MEDICATION CARD
-========================================================= */
+// =========================================================
+// MEDICATION CARD
+// =========================================================
 
-function MedicationCard({
-  medication,
-}) {
+function MedicationCard({ medication }) {
   const percent =
-    medication.supply /
-    medication.total;
+    medication.supply / medication.total;
 
   return (
     <View style={styles.medicationCard}>
       <View style={styles.medicationTop}>
         <MedicineIcon />
 
-        <View>
+        <View style={{ flex: 1 }}>
           <Text style={styles.medicationName}>
             {medication.name}{" "}
             <Text style={styles.medicationDose}>
@@ -719,8 +722,7 @@ function MedicationCard({
             style={[
               styles.progressFill,
               {
-                width:
-                  `${percent * 100}%`,
+                width: `${percent * 100}%`,
               },
             ]}
           />
@@ -728,13 +730,17 @@ function MedicationCard({
       </View>
 
       <View style={styles.medButtons}>
-        <TouchableOpacity style={styles.refillButton}>
+        <TouchableOpacity
+          style={styles.refillButton}
+        >
           <Text style={styles.refillButtonText}>
             ↻ Refill
           </Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.editButton}>
+        <TouchableOpacity
+          style={styles.editButton}
+        >
           <Text style={styles.editButtonText}>
             ✎ Edit
           </Text>
@@ -744,11 +750,16 @@ function MedicationCard({
   );
 }
 
-/* =========================================================
-   STATS SCREEN
-========================================================= */
+// =========================================================
+// STATS SCREEN
+// =========================================================
 
 function StatsScreen() {
+  const bars = [
+    70, 70, 90, 90, 70, 90, 90,
+    55, 70, 90, 55, 70, 70, 70,
+  ];
+
   return (
     <ScrollView
       style={styles.screen}
@@ -762,8 +773,6 @@ function StatsScreen() {
       <Text style={styles.patientName}>
         Eleanor Whitfield
       </Text>
-
-      {/* OVERALL */}
 
       <View style={styles.adherenceCard}>
         <Text style={styles.adherenceTitle}>
@@ -793,9 +802,7 @@ function StatsScreen() {
             <Text
               style={[
                 styles.outcomeNumber,
-                {
-                  color: COLORS.green,
-                },
+                { color: COLORS.green },
               ]}
             >
               72
@@ -810,9 +817,7 @@ function StatsScreen() {
             <Text
               style={[
                 styles.outcomeNumber,
-                {
-                  color: COLORS.yellow,
-                },
+                { color: COLORS.yellow },
               ]}
             >
               7
@@ -827,9 +832,7 @@ function StatsScreen() {
             <Text
               style={[
                 styles.outcomeNumber,
-                {
-                  color: COLORS.red,
-                },
+                { color: COLORS.red },
               ]}
             >
               4
@@ -842,8 +845,6 @@ function StatsScreen() {
         </View>
       </View>
 
-      {/* DAILY ADHERENCE */}
-
       <View style={styles.chartCard}>
         <Text style={styles.chartTitle}>
           Daily adherence
@@ -854,10 +855,7 @@ function StatsScreen() {
         </Text>
 
         <View style={styles.barChart}>
-          {[
-            70, 70, 90, 90, 70, 90, 90,
-            55, 70, 90, 55, 70, 70, 70,
-          ].map((height, index) => (
+          {bars.map((height, index) => (
             <View
               key={index}
               style={styles.barColumn}
@@ -865,9 +863,7 @@ function StatsScreen() {
               <View
                 style={[
                   styles.bar,
-                  {
-                    height: height,
-                  },
+                  { height },
                 ]}
               />
 
@@ -878,8 +874,6 @@ function StatsScreen() {
           ))}
         </View>
       </View>
-
-      {/* DOSE OUTCOMES */}
 
       <View style={styles.chartCard}>
         <Text style={styles.chartTitle}>
@@ -900,8 +894,6 @@ function StatsScreen() {
           </View>
         </View>
       </View>
-
-      {/* BY MEDICATION */}
 
       <View style={styles.medAdherenceCard}>
         <Text style={styles.chartTitle}>
@@ -936,14 +928,11 @@ function StatsScreen() {
   );
 }
 
-/* =========================================================
-   ADHERENCE ROW
-========================================================= */
+// =========================================================
+// ADHERENCE ROW
+// =========================================================
 
-function AdherenceRow({
-  name,
-  value,
-}) {
+function AdherenceRow({ name, value }) {
   return (
     <View style={styles.adherenceRow}>
       <View style={styles.adherenceRowHeader}>
@@ -974,9 +963,9 @@ function AdherenceRow({
   );
 }
 
-/* =========================================================
-   REPORTS SCREEN
-========================================================= */
+// =========================================================
+// REPORTS SCREEN
+// =========================================================
 
 function ReportsScreen() {
   return (
@@ -1007,8 +996,6 @@ function ReportsScreen() {
         </Text>
       </TouchableOpacity>
 
-      {/* REPORT */}
-
       <View style={styles.reportCard}>
         <View style={styles.reportNameRow}>
           <Text style={styles.reportName}>
@@ -1023,8 +1010,8 @@ function ReportsScreen() {
         </View>
 
         <Text style={styles.reportDetails}>
-          DOB 04/18/1953 · Hypertension, Type 2 Diabetes, Atrial
-          Fibrillation
+          DOB 04/18/1953 · Hypertension, Type 2 Diabetes,
+          Atrial Fibrillation
         </Text>
 
         <TouchableOpacity
@@ -1081,9 +1068,9 @@ function ReportsScreen() {
   );
 }
 
-/* =========================================================
-   REPORT STAT
-========================================================= */
+// =========================================================
+// REPORT STAT
+// =========================================================
 
 function ReportStat({
   title,
@@ -1100,9 +1087,7 @@ function ReportStat({
       <Text
         style={[
           styles.reportStatValue,
-          red && {
-            color: COLORS.red,
-          },
+          red && { color: COLORS.red },
           yellow && {
             color: COLORS.yellow,
           },
@@ -1114,17 +1099,203 @@ function ReportStat({
   );
 }
 
-/* =========================================================
-   LOGIN
-========================================================= */
+// =========================================================
+// CREATE ACCOUNT SCREEN
+// =========================================================
+
+function CreateAccountScreen({
+  onBack,
+  onAccountCreated,
+}) {
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] =
+    useState("");
+
+  const createAccount = () => {
+    if (
+      !name ||
+      !email ||
+      !password ||
+      !confirmPassword
+    ) {
+      Alert.alert(
+        "Missing Information",
+        "Please complete all fields."
+      );
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      Alert.alert(
+        "Password Error",
+        "Passwords do not match."
+      );
+      return;
+    }
+
+    if (password.length < 6) {
+      Alert.alert(
+        "Password Error",
+        "Password must be at least 6 characters."
+      );
+      return;
+    }
+
+    Alert.alert(
+      "Account Created",
+      "Your MedSked account has been created.",
+      [
+        {
+          text: "Continue",
+          onPress: onAccountCreated,
+        },
+      ]
+    );
+  };
+
+  return (
+    <SafeAreaView style={styles.loginSafe}>
+      <StatusBar
+        barStyle="light-content"
+        backgroundColor={COLORS.bg}
+      />
+
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={
+          Platform.OS === "ios"
+            ? "padding"
+            : undefined
+        }
+      >
+        <ScrollView
+          contentContainerStyle={
+            styles.createContent
+          }
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={onBack}
+          >
+            <Ionicons
+              name="arrow-back"
+              size={20}
+              color={COLORS.text}
+            />
+
+            <Text style={styles.backText}>
+              Back to Sign In
+            </Text>
+          </TouchableOpacity>
+
+          <View style={styles.createLogo}>
+            <Logo />
+          </View>
+
+          <Text style={styles.loginTitle}>
+            Create account
+          </Text>
+
+          <Text style={styles.loginSubtitle}>
+            Create your account to start managing
+            {"\n"}
+            your medication schedule.
+          </Text>
+
+          <Text style={styles.loginLabel}>
+            Full Name
+          </Text>
+
+          <TextInput
+            value={name}
+            onChangeText={setName}
+            placeholder="Enter your full name"
+            placeholderTextColor={COLORS.muted}
+            style={styles.loginInput}
+          />
+
+          <Text style={styles.loginLabel}>
+            Email Address
+          </Text>
+
+          <TextInput
+            value={email}
+            onChangeText={setEmail}
+            placeholder="Enter your email"
+            placeholderTextColor={COLORS.muted}
+            style={styles.loginInput}
+            keyboardType="email-address"
+            autoCapitalize="none"
+          />
+
+          <Text style={styles.loginLabel}>
+            Password
+          </Text>
+
+          <TextInput
+            value={password}
+            onChangeText={setPassword}
+            placeholder="Create a password"
+            placeholderTextColor={COLORS.muted}
+            style={styles.loginInput}
+            secureTextEntry
+          />
+
+          <Text style={styles.loginLabel}>
+            Confirm Password
+          </Text>
+
+          <TextInput
+            value={confirmPassword}
+            onChangeText={setConfirmPassword}
+            placeholder="Confirm your password"
+            placeholderTextColor={COLORS.muted}
+            style={styles.loginInput}
+            secureTextEntry
+          />
+
+          <TouchableOpacity
+            style={styles.loginButton}
+            onPress={createAccount}
+          >
+            <Text style={styles.loginButtonText}>
+              Create Account
+            </Text>
+          </TouchableOpacity>
+
+          <View style={styles.loginDivider} />
+
+          <Text style={styles.noAccount}>
+            Already have an account?
+          </Text>
+
+          <TouchableOpacity
+            style={styles.createButton}
+            onPress={onBack}
+          >
+            <Text style={styles.createButtonText}>
+              Sign In
+            </Text>
+          </TouchableOpacity>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
+  );
+}
+
+// =========================================================
+// LOGIN SCREEN
+// =========================================================
 
 function LoginScreen({
   onLogin,
   onCreateAccount,
 }) {
-  const [email, setEmail] =
-    useState("");
-
+  const [email, setEmail] = useState("");
   const [password, setPassword] =
     useState("");
 
@@ -1158,7 +1329,8 @@ function LoginScreen({
           </Text>
 
           <Text style={styles.loginSubtitle}>
-            Sign in to continue managing your{"\n"}
+            Sign in to continue managing your
+            {"\n"}
             household medication schedule.
           </Text>
 
@@ -1170,9 +1342,7 @@ function LoginScreen({
             value={email}
             onChangeText={setEmail}
             placeholder="Enter your email"
-            placeholderTextColor={
-              COLORS.muted
-            }
+            placeholderTextColor={COLORS.muted}
             style={styles.loginInput}
             keyboardType="email-address"
             autoCapitalize="none"
@@ -1186,9 +1356,7 @@ function LoginScreen({
             value={password}
             onChangeText={setPassword}
             placeholder="Enter your password"
-            placeholderTextColor={
-              COLORS.muted
-            }
+            placeholderTextColor={COLORS.muted}
             style={styles.loginInput}
             secureTextEntry
           />
@@ -1228,9 +1396,191 @@ function LoginScreen({
   );
 }
 
-/* =========================================================
-   APP
-========================================================= */
+// =========================================================
+// PROFILE / MORE SCREEN
+// =========================================================
+
+function MoreScreen({ onLogout }) {
+  return (
+    <ScrollView
+      style={styles.screen}
+      contentContainerStyle={styles.content}
+      showsVerticalScrollIndicator={false}
+    >
+      <Text style={styles.pageTitle}>
+        Profile
+      </Text>
+
+      <Text style={styles.patientName}>
+        Account settings
+      </Text>
+
+      {/* PROFILE CARD */}
+
+      <View style={styles.profileCard}>
+        <View style={styles.profileIcon}>
+          <Ionicons
+            name="person"
+            size={32}
+            color={COLORS.teal}
+          />
+        </View>
+
+        <View style={styles.profileInfo}>
+          <Text style={styles.profileName}>
+            Eleanor Whitfield
+          </Text>
+
+          <Text style={styles.profileEmail}>
+            eleanor@example.com
+          </Text>
+
+          <View style={styles.patientRole}>
+            <Text style={styles.patientRoleText}>
+              Patient
+            </Text>
+          </View>
+        </View>
+      </View>
+
+      {/* SETTINGS */}
+
+      <View style={styles.settingsCard}>
+        <Text style={styles.settingsTitle}>
+          Account
+        </Text>
+
+        <TouchableOpacity
+          style={styles.settingRow}
+        >
+          <View style={styles.settingIcon}>
+            <Ionicons
+              name="person-outline"
+              size={20}
+              color={COLORS.teal}
+            />
+          </View>
+
+          <View style={styles.settingInfo}>
+            <Text style={styles.settingName}>
+              Profile
+            </Text>
+
+            <Text style={styles.settingDescription}>
+              Manage your personal information
+            </Text>
+          </View>
+
+          <Ionicons
+            name="chevron-forward"
+            size={18}
+            color={COLORS.muted}
+          />
+        </TouchableOpacity>
+        
+        <TouchableOpacity
+          style={styles.settingRow}
+        >
+          <View style={styles.settingIcon}>
+            <Ionicons
+              name="notifications-outline"
+              size={20}
+              color={COLORS.teal}
+            />
+          </View>
+
+          <View style={styles.settingInfo}>
+            <Text style={styles.settingName}>
+              Notifications
+            </Text>
+
+            <Text style={styles.settingDescription}>
+              Manage medication reminders
+            </Text>
+          </View>
+
+          <Ionicons
+            name="chevron-forward"
+            size={18}
+            color={COLORS.muted}
+          />
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.settingRow}
+        >
+          <View style={styles.settingIcon}>
+            <Ionicons
+              name="person-outline"
+              size={20}
+              color={COLORS.teal}
+            />
+          </View>
+
+          <View style={styles.settingInfo}>
+            <Text style={styles.settingName}>
+              Reports
+            </Text>
+
+            <Text style={styles.settingDescription}>
+              Eleanor Whitfield
+            </Text>
+          </View>
+
+          <Ionicons
+            name="chevron-forward"
+            size={18}
+            color={COLORS.muted}
+          />
+        </TouchableOpacity>
+
+      </View>
+
+      {/* LOGOUT */}
+
+      <View style={styles.logoutCard}>
+        <View style={styles.logoutHeader}>
+          <View style={styles.logoutIcon}>
+            <Ionicons
+              name="log-out-outline"
+              size={22}
+              color={COLORS.red}
+            />
+          </View>
+
+          <View style={{ flex: 1 }}>
+            <Text style={styles.logoutTitle}>
+              Log Out
+            </Text>
+
+            <Text style={styles.logoutDescription}>
+              Sign out of your MedSked account
+            </Text>
+          </View>
+        </View>
+
+        <TouchableOpacity
+          style={styles.logoutButton}
+          onPress={onLogout}
+        >
+          <Ionicons
+            name="log-out-outline"
+            size={19}
+            color={COLORS.red}
+          />
+
+          <Text style={styles.logoutButtonText}>
+            Log Out
+          </Text>
+        </TouchableOpacity>
+      </View>
+    </ScrollView>
+  );
+}
+
+// =========================================================
+// APP
+// =========================================================
 
 export default function App() {
   const [screen, setScreen] =
@@ -1239,25 +1589,65 @@ export default function App() {
   const [activeTab, setActiveTab] =
     useState("home");
 
-  /* =========================
-     LOGIN
-  ========================= */
+  // LOGIN
+  const handleLogin = () => {
+    setActiveTab("home");
+    setScreen("app");
+  };
 
-  if (screen === "login") {
+  // CREATE ACCOUNT
+  const handleCreateAccount = () => {
+    setScreen("create");
+  };
+
+  // ACCOUNT CREATED
+  const handleAccountCreated = () => {
+    setScreen("login");
+  };
+
+  // LOGOUT
+  const handleLogout = () => {
+    Alert.alert(
+      "Log Out",
+      "Are you sure you want to log out?",
+      [
+        {
+          text: "Cancel",
+          style: "cancel",
+        },
+        {
+          text: "Log Out",
+          style: "destructive",
+          onPress: () => {
+            setActiveTab("home");
+            setScreen("login");
+          },
+        },
+      ]
+    );
+  };
+
+  // CREATE ACCOUNT SCREEN
+  if (screen === "create") {
     return (
-      <LoginScreen
-        onLogin={() =>
-          setScreen("app")
-        }
-        onCreateAccount={() => {}}
+      <CreateAccountScreen
+        onBack={() => setScreen("login")}
+        onAccountCreated={handleAccountCreated}
       />
     );
   }
 
-  /* =========================
-     MAIN APP
-  ========================= */
+  // LOGIN SCREEN
+  if (screen === "login") {
+    return (
+      <LoginScreen
+        onLogin={handleLogin}
+        onCreateAccount={handleCreateAccount}
+      />
+    );
+  }
 
+  // MAIN APP
   function renderScreen() {
     if (activeTab === "home") {
       return (
@@ -1280,10 +1670,18 @@ export default function App() {
     }
 
     if (activeTab === "more") {
-      return <ReportsScreen />;
+      return (
+        <MoreScreen
+          onLogout={handleLogout}
+        />
+      );
     }
 
-    return <HomeScreen />;
+    return (
+      <HomeScreen
+        setActive={setActiveTab}
+      />
+    );
   }
 
   return (
@@ -1307,9 +1705,9 @@ export default function App() {
   );
 }
 
-/* =========================================================
-   STYLES
-========================================================= */
+// =========================================================
+// STYLES
+// =========================================================
 
 const styles = StyleSheet.create({
   app: {
@@ -1328,7 +1726,9 @@ const styles = StyleSheet.create({
     paddingBottom: 30,
   },
 
-  /* LOGO */
+  // =======================================================
+  // LOGO
+  // =======================================================
 
   logoContainer: {
     flexDirection: "row",
@@ -1357,7 +1757,9 @@ const styles = StyleSheet.create({
     marginTop: 1,
   },
 
-  /* HEADER */
+  // =======================================================
+  // HEADER
+  // =======================================================
 
   topHeader: {
     height: 74,
@@ -1415,7 +1817,9 @@ const styles = StyleSheet.create({
     fontWeight: "900",
   },
 
-  /* TITLES */
+  // =======================================================
+  // TITLES
+  // =======================================================
 
   pageTitle: {
     color: COLORS.text,
@@ -1443,7 +1847,9 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
 
-  /* STAT GRID */
+  // =======================================================
+  // STAT GRID
+  // =======================================================
 
   statsGrid: {
     flexDirection: "row",
@@ -1504,7 +1910,9 @@ const styles = StyleSheet.create({
     lineHeight: 15,
   },
 
-  /* CARDS */
+  // =======================================================
+  // CARDS
+  // =======================================================
 
   largeCard: {
     backgroundColor: COLORS.card,
@@ -1596,7 +2004,9 @@ const styles = StyleSheet.create({
     fontWeight: "800",
   },
 
-  /* REFILL */
+  // =======================================================
+  // REFILL
+  // =======================================================
 
   refillRow: {
     flexDirection: "row",
@@ -1637,7 +2047,9 @@ const styles = StyleSheet.create({
     fontWeight: "900",
   },
 
-  /* ATTENTION */
+  // =======================================================
+  // ATTENTION
+  // =======================================================
 
   attentionCard: {
     backgroundColor: "#14211D",
@@ -1660,7 +2072,9 @@ const styles = StyleSheet.create({
     marginTop: 5,
   },
 
-  /* BOTTOM NAV */
+  // =======================================================
+  // BOTTOM NAV
+  // =======================================================
 
   bottomNav: {
     height: 74,
@@ -1697,7 +2111,9 @@ const styles = StyleSheet.create({
     fontWeight: "900",
   },
 
-  /* FILTER */
+  // =======================================================
+  // FILTER
+  // =======================================================
 
   filterRow: {
     flexDirection: "row",
@@ -1728,7 +2144,9 @@ const styles = StyleSheet.create({
     color: COLORS.bg,
   },
 
-  /* DOSE GROUP */
+  // =======================================================
+  // DOSE GROUP
+  // =======================================================
 
   doseGroup: {
     backgroundColor: COLORS.card,
@@ -1795,7 +2213,9 @@ const styles = StyleSheet.create({
     color: COLORS.red,
   },
 
-  /* MEDICATIONS */
+  // =======================================================
+  // MEDICATIONS
+  // =======================================================
 
   addMedication: {
     alignSelf: "flex-start",
@@ -1943,7 +2363,9 @@ const styles = StyleSheet.create({
     fontWeight: "900",
   },
 
-  /* STATS */
+  // =======================================================
+  // STATS
+  // =======================================================
 
   adherenceCard: {
     backgroundColor: COLORS.card,
@@ -2140,7 +2562,9 @@ const styles = StyleSheet.create({
     marginTop: 6,
   },
 
-  /* REPORTS */
+  // =======================================================
+  // REPORTS
+  // =======================================================
 
   reportTitle: {
     color: COLORS.text,
@@ -2283,7 +2707,9 @@ const styles = StyleSheet.create({
     fontWeight: "800",
   },
 
-  /* LOGIN */
+  // =======================================================
+  // LOGIN
+  // =======================================================
 
   loginSafe: {
     flex: 1,
@@ -2388,5 +2814,202 @@ const styles = StyleSheet.create({
     color: COLORS.text,
     fontSize: 11,
     fontWeight: "900",
+  },
+
+  // =======================================================
+  // CREATE ACCOUNT
+  // =======================================================
+
+  createContent: {
+    flexGrow: 1,
+    paddingHorizontal: 35,
+    paddingTop: 20,
+    paddingBottom: 35,
+  },
+
+  backButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 30,
+  },
+
+  backText: {
+    color: COLORS.text,
+    fontSize: 12,
+    fontWeight: "700",
+    marginLeft: 7,
+  },
+
+  createLogo: {
+    alignItems: "center",
+    marginBottom: 30,
+  },
+
+  // =======================================================
+  // PROFILE
+  // =======================================================
+
+  profileCard: {
+    backgroundColor: COLORS.card,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    borderRadius: 16,
+    padding: 18,
+    marginTop: 22,
+    flexDirection: "row",
+    alignItems: "center",
+  },
+
+  profileIcon: {
+    width: 65,
+    height: 65,
+    borderRadius: 33,
+    backgroundColor: "#0A4147",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  profileInfo: {
+    marginLeft: 15,
+    flex: 1,
+  },
+
+  profileName: {
+    color: COLORS.text,
+    fontSize: 18,
+    fontWeight: "900",
+  },
+
+  profileEmail: {
+    color: COLORS.muted,
+    fontSize: 11,
+    marginTop: 4,
+  },
+
+  patientRole: {
+    alignSelf: "flex-start",
+    backgroundColor: "#103A3F",
+    paddingHorizontal: 9,
+    paddingVertical: 5,
+    borderRadius: 12,
+    marginTop: 7,
+  },
+
+  patientRoleText: {
+    color: COLORS.teal,
+    fontSize: 9,
+    fontWeight: "900",
+  },
+
+  settingsCard: {
+    backgroundColor: COLORS.card,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    borderRadius: 16,
+    padding: 16,
+    marginTop: 14,
+  },
+
+  settingsTitle: {
+    color: COLORS.text,
+    fontSize: 16,
+    fontWeight: "900",
+    marginBottom: 5,
+  },
+
+  settingRow: {
+    minHeight: 65,
+    flexDirection: "row",
+    alignItems: "center",
+    borderTopWidth: 1,
+    borderTopColor: COLORS.border,
+    marginTop: 7,
+    paddingTop: 10,
+  },
+
+  settingIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 10,
+    backgroundColor: "#0A4147",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  settingInfo: {
+    flex: 1,
+    marginLeft: 12,
+  },
+
+  settingName: {
+    color: COLORS.text,
+    fontSize: 13,
+    fontWeight: "900",
+  },
+
+  settingDescription: {
+    color: COLORS.muted,
+    fontSize: 10,
+    marginTop: 3,
+  },
+
+  // =======================================================
+  // LOGOUT
+  // =======================================================
+
+  logoutCard: {
+    backgroundColor: COLORS.card,
+    borderWidth: 1,
+    borderColor: "#52252A",
+    borderRadius: 16,
+    padding: 16,
+    marginTop: 14,
+    marginBottom: 20,
+  },
+
+  logoutHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+
+  logoutIcon: {
+    width: 43,
+    height: 43,
+    borderRadius: 11,
+    backgroundColor: "#3D2025",
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 12,
+  },
+
+  logoutTitle: {
+    color: COLORS.text,
+    fontSize: 15,
+    fontWeight: "900",
+  },
+
+  logoutDescription: {
+    color: COLORS.muted,
+    fontSize: 10,
+    marginTop: 4,
+  },
+
+  logoutButton: {
+    height: 45,
+    borderWidth: 1,
+    borderColor: "#6A3037",
+    backgroundColor: "#351C21",
+    borderRadius: 9,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 15,
+  },
+
+  logoutButtonText: {
+    color: COLORS.red,
+    fontSize: 12,
+    fontWeight: "900",
+    marginLeft: 7,
   },
 });
