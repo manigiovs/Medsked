@@ -1,15 +1,32 @@
-<<<<<<< HEAD
-# Sample Snack app
-
-Open the `App.js` file to start writing some code. You can preview the changes directly on your phone or tablet by scanning the **QR code** or use the iOS or Android emulators. When you're done, click **Save** and share the link!
-
-When you're ready to see everything that Expo provides (or if you want to use your own editor) you can **Download** your project and use it with [expo cli](https://docs.expo.dev/get-started/installation/#expo-cli)).
-
-All projects created in Snack are publicly available, so you can easily share the link to this project via link, or embed it on a web page with the `<>` button.
-
-If you're having problems, you can tweet to us [@expo](https://twitter.com/expo) or ask in our [forums](https://forums.expo.dev/c/expo-dev-tools/61) or [Discord](https://chat.expo.dev/).
-
-Snack is Open Source. You can find the code on the [GitHub repo](https://github.com/expo/snack).
-=======
 # Medsked
->>>>>>> e2b42c30e619abff15afdf254f40f2190aa92bea
+
+Medsked is a medication-care dashboard built with Expo and React Native Web. The same source powers the mobile screens and the browser experience.
+
+## Run the website locally
+
+```powershell
+npm install
+npm run web
+```
+
+Expo will open the development website in your browser.
+
+## Build the website
+
+```powershell
+npm run build:web
+```
+
+The production files are generated in `dist/`. Serve that folder from Apache/XAMPP or any static hosting provider.
+
+## Included screens
+
+- Dashboard overview
+- Today's doses
+- Medication list and add-medication flow
+- Adherence tracking
+- Dose history
+- Caregiver alerts
+- Clinical reports
+
+The current app uses local in-memory sample data. A backend can be connected later for authentication, persistence, and real notifications.

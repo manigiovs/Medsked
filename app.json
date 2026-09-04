@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "vengeful-violet-apple",
-    "slug": "snack-094b6fc8-4166-4cb5-bccd-bb3ee3c382ab",
+    "name": "Medsked",
+    "slug": "medsked",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -23,7 +23,8 @@
       "edgeToEdgeEnabled": true
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro"
     }
   }
 }
