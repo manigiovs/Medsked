@@ -1962,6 +1962,10 @@ const styles = StyleSheet.create({
 logoImage: {
   width: 47,
   height: 47,
+  borderRadius: 24,
+  borderWidth: 2,
+  borderColor: COLORS.teal,
+  backgroundColor: "#F8FAFA",
   marginRight: 10,
 },
   /* =======================================================
