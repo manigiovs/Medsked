@@ -11,12 +11,13 @@ import {
   KeyboardAvoidingView,
   Platform,
   Alert,
+  Image,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
-// =========================================================
-// COLORS
-// =========================================================
+/* =========================================================
+   COLORS
+========================================================= */
 
 const COLORS = {
   bg: "#061A1D",
@@ -30,23 +31,20 @@ const COLORS = {
   yellow: "#FFB52E",
   red: "#FF5159",
   green: "#43CA7C",
-  black: "#000000",
 };
 
-// =========================================================
-// LOGO
-// =========================================================
+/* =========================================================
+   LOGO
+========================================================= */
 
 function Logo() {
   return (
     <View style={styles.logoContainer}>
-      <View style={styles.logoIcon}>
-        <Ionicons
-          name="heart-outline"
-          size={25}
-          color={COLORS.bg}
-        />
-      </View>
+      <Image
+        source={require("medsked.png")}
+        style={styles.logoImage}
+        resizeMode="contain"
+      />
 
       <View>
         <Text style={styles.logoText}>MEDSKED</Text>
@@ -58,35 +56,103 @@ function Logo() {
   );
 }
 
-// =========================================================
-// TOP HEADER
-// =========================================================
+/* =========================================================
+   TOP HEADER
+========================================================= */
 
-function TopHeader() {
+function TopHeader({ onLogout, onProfile }) {
+  const [menuVisible, setMenuVisible] = useState(false);
+
   return (
     <View style={styles.topHeader}>
       <Logo />
 
       <View style={styles.headerRight}>
-        <TouchableOpacity style={styles.patientButton}>
-          <Ionicons
-            name="person-outline"
-            size={14}
-            color={COLORS.teal}
-          />
+        <View>
+          <TouchableOpacity
+            style={styles.patientButton}
+            onPress={() =>
+              setMenuVisible(!menuVisible)
+            }
+          >
+            <Ionicons
+              name="person-outline"
+              size={14}
+              color={COLORS.teal}
+            />
 
-          <Text style={styles.patientText}>
-            Patient
-          </Text>
+            <Text style={styles.patientText}>
+              Patient
+            </Text>
 
-          <Ionicons
-            name="chevron-down"
-            size={13}
-            color={COLORS.teal}
-          />
-        </TouchableOpacity>
+            <Ionicons
+              name={
+                menuVisible
+                  ? "chevron-up"
+                  : "chevron-down"
+              }
+              size={13}
+              color={COLORS.teal}
+            />
+          </TouchableOpacity>
 
-        <TouchableOpacity style={styles.notification}>
+          {menuVisible && (
+            <View style={styles.profileMenu}>
+              <TouchableOpacity
+                style={styles.menuItem}
+                onPress={() => {
+                  setMenuVisible(false);
+                  onProfile();
+                }}
+              >
+                <Ionicons
+                  name="person-outline"
+                  size={18}
+                  color={COLORS.text}
+                />
+
+                <Text style={styles.menuText}>
+                  Profile
+                </Text>
+              </TouchableOpacity>
+
+              <View style={styles.menuDivider} />
+
+              <TouchableOpacity
+                style={styles.menuItem}
+                onPress={() => {
+                  setMenuVisible(false);
+                  onLogout();
+                }}
+              >
+                <Ionicons
+                  name="log-out-outline"
+                  size={19}
+                  color={COLORS.red}
+                />
+
+                <Text
+                  style={[
+                    styles.menuText,
+                    { color: COLORS.red },
+                  ]}
+                >
+                  Log Out
+                </Text>
+              </TouchableOpacity>
+            </View>
+          )}
+        </View>
+
+        <TouchableOpacity
+          style={styles.notification}
+          onPress={() =>
+            Alert.alert(
+              "Notifications",
+              "You have 2 notifications."
+            )
+          }
+        >
           <Ionicons
             name="notifications-outline"
             size={24}
@@ -102,9 +168,9 @@ function TopHeader() {
   );
 }
 
-// =========================================================
-// BOTTOM NAVIGATION
-// =========================================================
+/* =========================================================
+   BOTTOM NAVIGATION
+========================================================= */
 
 function BottomNav({ active, setActive }) {
   const tabs = [
@@ -174,9 +240,9 @@ function BottomNav({ active, setActive }) {
   );
 }
 
-// =========================================================
-// MEDICATION DATA
-// =========================================================
+/* =========================================================
+   MEDICATION DATA
+========================================================= */
 
 const medications = [
   {
@@ -217,9 +283,9 @@ const medications = [
   },
 ];
 
-// =========================================================
-// MEDICATION ICON
-// =========================================================
+/* =========================================================
+   MEDICINE ICON
+========================================================= */
 
 function MedicineIcon() {
   return (
@@ -233,9 +299,9 @@ function MedicineIcon() {
   );
 }
 
-// =========================================================
-// HOME SCREEN
-// =========================================================
+/* =========================================================
+   HOME SCREEN
+========================================================= */
 
 function HomeScreen({ setActive }) {
   return (
@@ -260,8 +326,6 @@ function HomeScreen({ setActive }) {
         Medication overview for Eleanor Whitfield.
       </Text>
 
-      {/* STAT CARDS */}
-
       <View style={styles.statsGrid}>
         <View style={styles.smallStatCard}>
           <View style={styles.statIconYellow}>
@@ -272,9 +336,7 @@ function HomeScreen({ setActive }) {
             />
           </View>
 
-          <Text style={styles.statBig}>
-            87%
-          </Text>
+          <Text style={styles.statBig}>87%</Text>
 
           <Text style={styles.statLabel}>
             Adherence
@@ -290,9 +352,7 @@ function HomeScreen({ setActive }) {
             />
           </View>
 
-          <Text style={styles.statBig}>
-            4/6
-          </Text>
+          <Text style={styles.statBig}>4/6</Text>
 
           <Text style={styles.statLabel}>
             Doses taken today
@@ -313,8 +373,7 @@ function HomeScreen({ setActive }) {
           </Text>
 
           <Text style={styles.statLabel}>
-            Next dose{"\n"}
-            Atorvastatin
+            Next dose{"\n"}Atorvastatin
           </Text>
         </View>
 
@@ -327,17 +386,13 @@ function HomeScreen({ setActive }) {
             />
           </View>
 
-          <Text style={styles.statBig}>
-            2
-          </Text>
+          <Text style={styles.statBig}>2</Text>
 
           <Text style={styles.statLabel}>
             Refills needed
           </Text>
         </View>
       </View>
-
-      {/* REMAINING DOSES */}
 
       <View style={styles.largeCard}>
         <View style={styles.cardHeaderRow}>
@@ -383,8 +438,6 @@ function HomeScreen({ setActive }) {
           </View>
         </View>
       </View>
-
-      {/* REFILL TRACKER */}
 
       <View style={styles.largeCard}>
         <Text style={styles.cardTitle}>
@@ -432,8 +485,6 @@ function HomeScreen({ setActive }) {
         </TouchableOpacity>
       </View>
 
-      {/* ATTENTION */}
-
       <View style={styles.attentionCard}>
         <Text style={styles.attentionTitle}>
           ⚠ Attention needed
@@ -447,9 +498,9 @@ function HomeScreen({ setActive }) {
   );
 }
 
-// =========================================================
-// DOSES SCREEN
-// =========================================================
+/* =========================================================
+   DOSES SCREEN
+========================================================= */
 
 function DosesScreen() {
   const [filter, setFilter] = useState("All");
@@ -475,20 +526,12 @@ function DosesScreen() {
     },
   ];
 
-  const afternoonDoses = [
-    {
-      name: "Metformin",
-      dose: "500 mg",
-      status: "Taken",
-      time: "8:00 PM",
-    },
-    {
-      name: "Apixaban",
-      dose: "5 mg",
-      status: "Upcoming",
-      time: "8:00 PM",
-    },
-  ];
+  const filteredDoses =
+    filter === "All"
+      ? doses
+      : doses.filter(
+          (dose) => dose.status === filter
+        );
 
   return (
     <ScrollView
@@ -505,69 +548,73 @@ function DosesScreen() {
       </Text>
 
       <View style={styles.filterRow}>
-        {["All", "Upcoming", "Taken", "Missed"].map(
-          (item) => (
-            <TouchableOpacity
-              key={item}
+        {[
+          "All",
+          "Upcoming",
+          "Taken",
+          "Missed",
+        ].map((item) => (
+          <TouchableOpacity
+            key={item}
+            style={[
+              styles.filterButton,
+              filter === item &&
+                styles.filterActive,
+            ]}
+            onPress={() => setFilter(item)}
+          >
+            <Text
               style={[
-                styles.filterButton,
+                styles.filterText,
                 filter === item &&
-                  styles.filterActive,
+                  styles.filterTextActive,
               ]}
-              onPress={() => setFilter(item)}
             >
-              <Text
-                style={[
-                  styles.filterText,
-                  filter === item &&
-                    styles.filterTextActive,
-                ]}
-              >
-                {item}
-              </Text>
-            </TouchableOpacity>
-          )
-        )}
+              {item}
+            </Text>
+          </TouchableOpacity>
+        ))}
       </View>
 
       <DoseGroup
         title="8:00 AM"
-        count="3 medications"
-        doses={doses}
-        filter={filter}
+        count={`${filteredDoses.length} medications`}
+        doses={filteredDoses}
       />
 
-      <DoseGroup
-        title="8:00 PM"
-        count="2 medications"
-        doses={afternoonDoses}
-        filter={filter}
-      />
+      {filter === "All" && (
+        <DoseGroup
+          title="8:00 PM"
+          count="2 medications"
+          doses={[
+            {
+              name: "Metformin",
+              dose: "500 mg",
+              status: "Taken",
+              time: "8:00 PM",
+            },
+            {
+              name: "Apixaban",
+              dose: "5 mg",
+              status: "Upcoming",
+              time: "8:00 PM",
+            },
+          ]}
+        />
+      )}
     </ScrollView>
   );
 }
 
-// =========================================================
-// DOSE GROUP
-// =========================================================
+/* =========================================================
+   DOSE GROUP
+========================================================= */
 
 function DoseGroup({
   title,
   count,
   doses,
-  filter,
 }) {
-  const filtered =
-    filter === "All"
-      ? doses
-      : doses.filter(
-          (dose) => dose.status === filter
-        );
-
-  if (filtered.length === 0) {
-    return null;
-  }
-
   return (
     <View style={styles.doseGroup}>
       <View style={styles.doseGroupTitle}>
@@ -580,55 +627,61 @@ function DoseGroup({
         </Text>
       </View>
 
-      {filtered.map((dose) => (
-        <View
-          key={dose.name + dose.time}
-          style={styles.doseListCard}
-        >
-          <MedicineIcon />
-
-          <View style={styles.doseInfo}>
-            <Text style={styles.medName}>
-              {dose.name}{" "}
-              <Text style={styles.medDose}>
-                {dose.dose}
-              </Text>
-            </Text>
-
-            <Text style={styles.medTime}>
-              ◷ {dose.time} · tablet
-            </Text>
-          </View>
-
+      {doses.length === 0 ? (
+        <Text style={styles.emptyText}>
+          No doses found.
+        </Text>
+      ) : (
+        doses.map((dose) => (
           <View
-            style={[
-              styles.statusBadge,
-              dose.status === "Missed"
-                ? styles.statusMissed
-                : dose.status === "Taken"
-                ? styles.statusTaken
-                : styles.statusUpcoming,
-            ]}
+            key={dose.name + dose.time}
+            style={styles.doseListCard}
           >
-            <Text
+            <MedicineIcon />
+
+            <View style={styles.doseInfo}>
+              <Text style={styles.medName}>
+                {dose.name}{" "}
+                <Text style={styles.medDose}>
+                  {dose.dose}
+                </Text>
+              </Text>
+
+              <Text style={styles.medTime}>
+                ◷ {dose.time} · tablet
+              </Text>
+            </View>
+
+            <View
               style={[
-                styles.statusText,
-                dose.status === "Missed" &&
-                  styles.statusMissedText,
+                styles.statusBadge,
+                dose.status === "Missed"
+                  ? styles.statusMissed
+                  : dose.status === "Taken"
+                  ? styles.statusTaken
+                  : styles.statusUpcoming,
               ]}
             >
-              {dose.status}
-            </Text>
+              <Text
+                style={[
+                  styles.statusText,
+                  dose.status === "Missed" &&
+                    styles.statusMissedText,
+                ]}
+              >
+                {dose.status}
+              </Text>
+            </View>
           </View>
-        </View>
-      ))}
+        ))
+      )}
     </View>
   );
 }
 
-// =========================================================
-// MEDICATIONS SCREEN
-// =========================================================
+/* =========================================================
+   MEDICATIONS SCREEN
+========================================================= */
 
 function MedicationsScreen() {
   return (
@@ -647,6 +700,12 @@ function MedicationsScreen() {
 
       <TouchableOpacity
         style={styles.addMedication}
+        onPress={() =>
+          Alert.alert(
+            "Add Medication",
+            "Medication form will be available here."
+          )
+        }
       >
         <Text style={styles.addMedicationText}>
           + Add medication
@@ -663,20 +722,23 @@ function MedicationsScreen() {
   );
 }
 
-// =========================================================
-// MEDICATION CARD
-// =========================================================
+/* =========================================================
+   MEDICATION CARD
+========================================================= */
 
-function MedicationCard({ medication }) {
+function MedicationCard({
+  medication,
+}) {
   const percent =
-    medication.supply / medication.total;
+    medication.supply /
+    medication.total;
 
   return (
     <View style={styles.medicationCard}>
       <View style={styles.medicationTop}>
         <MedicineIcon />
 
-        <View style={{ flex: 1 }}>
+        <View style={styles.medicationDetails}>
           <Text style={styles.medicationName}>
             {medication.name}{" "}
             <Text style={styles.medicationDose}>
@@ -732,6 +794,12 @@ function MedicationCard({ medication }) {
       <View style={styles.medButtons}>
         <TouchableOpacity
           style={styles.refillButton}
+          onPress={() =>
+            Alert.alert(
+              "Refill",
+              `Refill request for ${medication.name}.`
+            )
+          }
         >
           <Text style={styles.refillButtonText}>
             ↻ Refill
@@ -740,6 +808,12 @@ function MedicationCard({ medication }) {
 
         <TouchableOpacity
           style={styles.editButton}
+          onPress={() =>
+            Alert.alert(
+              "Edit",
+              `Edit ${medication.name}.`
+            )
+          }
         >
           <Text style={styles.editButtonText}>
             ✎ Edit
@@ -750,16 +824,11 @@ function MedicationCard({ medication }) {
   );
 }
 
-// =========================================================
-// STATS SCREEN
-// =========================================================
+/* =========================================================
+   STATS SCREEN
+========================================================= */
 
 function StatsScreen() {
-  const bars = [
-    70, 70, 90, 90, 70, 90, 90,
-    55, 70, 90, 55, 70, 70, 70,
-  ];
-
   return (
     <ScrollView
       style={styles.screen}
@@ -855,7 +924,12 @@ function StatsScreen() {
         </Text>
 
         <View style={styles.barChart}>
-          {bars.map((height, index) => (
+          {[
+            70, 70, 90, 90,
+            70, 90, 90, 55,
+            70, 90, 55, 70,
+            70, 70,
+          ].map((height, index) => (
             <View
               key={index}
               style={styles.barColumn}
@@ -928,11 +1002,14 @@ function StatsScreen() {
   );
 }
 
-// =========================================================
-// ADHERENCE ROW
-// =========================================================
+/* =========================================================
+   ADHERENCE ROW
+========================================================= */
 
-function AdherenceRow({ name, value }) {
+function AdherenceRow({
+  name,
+  value,
+}) {
   return (
     <View style={styles.adherenceRow}>
       <View style={styles.adherenceRowHeader}>
@@ -945,13 +1022,13 @@ function AdherenceRow({ name, value }) {
         </Text>
       </View>
 
-      <View style={styles.adherenceBarBackground}>
+      <View
+        style={styles.adherenceBarBackground}
+      >
         <View
           style={[
             styles.adherenceBar,
-            {
-              width: `${value}%`,
-            },
+            { width: `${value}%` },
           ]}
         />
       </View>
@@ -963,9 +1040,9 @@ function AdherenceRow({ name, value }) {
   );
 }
 
-// =========================================================
-// REPORTS SCREEN
-// =========================================================
+/* =========================================================
+   REPORTS SCREEN
+========================================================= */
 
 function ReportsScreen() {
   return (
@@ -990,7 +1067,15 @@ function ReportsScreen() {
         Adherence summaries across 2 patients · last 14 days
       </Text>
 
-      <TouchableOpacity style={styles.exportButton}>
+      <TouchableOpacity
+        style={styles.exportButton}
+        onPress={() =>
+          Alert.alert(
+            "Export",
+            "Reports exported successfully."
+          )
+        }
+      >
         <Text style={styles.exportText}>
           ↓ Export all
         </Text>
@@ -1003,19 +1088,27 @@ function ReportsScreen() {
           </Text>
 
           <View style={styles.adherenceBadge}>
-            <Text style={styles.adherenceBadgeText}>
+            <Text
+              style={styles.adherenceBadgeText}
+            >
               87% adherence
             </Text>
           </View>
         </View>
 
         <Text style={styles.reportDetails}>
-          DOB 04/18/1953 · Hypertension, Type 2 Diabetes,
-          Atrial Fibrillation
+          DOB 04/18/1953 · Hypertension,
+          Type 2 Diabetes, Atrial Fibrillation
         </Text>
 
         <TouchableOpacity
           style={styles.generateButton}
+          onPress={() =>
+            Alert.alert(
+              "Report",
+              "Clinical report generated."
+            )
+          }
         >
           <Text style={styles.generateText}>
             ▣ Generate report
@@ -1068,9 +1161,9 @@ function ReportsScreen() {
   );
 }
 
-// =========================================================
-// REPORT STAT
-// =========================================================
+/* =========================================================
+   REPORT STAT
+========================================================= */
 
 function ReportStat({
   title,
@@ -1088,9 +1181,7 @@ function ReportStat({
         style={[
           styles.reportStatValue,
           red && { color: COLORS.red },
-          yellow && {
-            color: COLORS.yellow,
-          },
+          yellow && { color: COLORS.yellow },
         ]}
       >
         {value}
@@ -1099,60 +1190,212 @@ function ReportStat({
   );
 }
 
-// =========================================================
-// CREATE ACCOUNT SCREEN
-// =========================================================
+/* =========================================================
+   PROFILE SCREEN
+========================================================= */
 
-function CreateAccountScreen({
-  onBack,
-  onAccountCreated,
+function ProfileScreen({ onLogout }) {
+  return (
+    <ScrollView
+      style={styles.screen}
+      contentContainerStyle={styles.content}
+      showsVerticalScrollIndicator={false}
+    >
+      <Text style={styles.pageTitle}>
+        Profile
+      </Text>
+
+      <Text style={styles.profileSubtitle}>
+        Account settings
+      </Text>
+
+      <View style={styles.profileCard}>
+        <View style={styles.profileAvatar}>
+          <Ionicons
+            name="person"
+            size={30}
+            color={COLORS.teal}
+          />
+        </View>
+
+        <View>
+          <Text style={styles.profileName}>
+            Eleanor Whitfield
+          </Text>
+
+          <Text style={styles.profileEmail}>
+            eleanor@example.com
+          </Text>
+
+          <View style={styles.patientBadge}>
+            <Text style={styles.patientBadgeText}>
+              Patient
+            </Text>
+          </View>
+        </View>
+      </View>
+
+      <View style={styles.accountCard}>
+        <Text style={styles.accountTitle}>
+          Account
+        </Text>
+
+        <View style={styles.accountDivider} />
+
+        <TouchableOpacity
+          style={styles.accountRow}
+          onPress={() =>
+            Alert.alert(
+              "Profile",
+              "Manage your personal information."
+            )
+          }
+        >
+          <View style={styles.accountIcon}>
+            <Ionicons
+              name="person-outline"
+              size={21}
+              color={COLORS.teal}
+            />
+          </View>
+
+          <View style={styles.accountInfo}>
+            <Text style={styles.accountItemTitle}>
+              Profile
+            </Text>
+
+            <Text style={styles.accountItemSubtitle}>
+              Manage your personal information
+            </Text>
+          </View>
+
+          <Ionicons
+            name="chevron-forward"
+            size={20}
+            color={COLORS.muted}
+          />
+        </TouchableOpacity>
+
+        <View style={styles.accountDivider} />
+
+        <TouchableOpacity
+          style={styles.accountRow}
+          onPress={() =>
+            Alert.alert(
+              "Notifications",
+              "Manage your medication reminders."
+            )
+          }
+        >
+          <View style={styles.accountIcon}>
+            <Ionicons
+              name="notifications-outline"
+              size={21}
+              color={COLORS.teal}
+            />
+          </View>
+
+          <View style={styles.accountInfo}>
+            <Text style={styles.accountItemTitle}>
+              Notifications
+            </Text>
+
+            <Text style={styles.accountItemSubtitle}>
+              Manage medication reminders
+            </Text>
+          </View>
+
+          <Ionicons
+            name="chevron-forward"
+            size={20}
+            color={COLORS.muted}
+          />
+        </TouchableOpacity>
+
+        <View style={styles.accountDivider} />
+
+        <TouchableOpacity
+          style={styles.accountRow}
+          onPress={() =>
+            Alert.alert(
+              "Reports",
+              "Clinical reports for Eleanor Whitfield."
+            )
+          }
+        >
+          <View style={styles.accountIcon}>
+            <Ionicons
+              name="document-text-outline"
+              size={21}
+              color={COLORS.teal}
+            />
+          </View>
+
+          <View style={styles.accountInfo}>
+            <Text style={styles.accountItemTitle}>
+              Reports
+            </Text>
+
+            <Text style={styles.accountItemSubtitle}>
+              Eleanor Whitfield
+            </Text>
+          </View>
+
+          <Ionicons
+            name="chevron-forward"
+            size={20}
+            color={COLORS.muted}
+          />
+        </TouchableOpacity>
+      </View>
+
+      <TouchableOpacity
+        style={styles.logoutCard}
+        onPress={onLogout}
+      >
+        <View style={styles.logoutIcon}>
+          <Ionicons
+            name="log-out-outline"
+            size={23}
+            color={COLORS.red}
+          />
+        </View>
+
+        <View>
+          <Text style={styles.logoutTitle}>
+            Log Out
+          </Text>
+
+          <Text style={styles.logoutSubtitle}>
+            Sign out of your MedSked account
+          </Text>
+        </View>
+      </TouchableOpacity>
+    </ScrollView>
+  );
+}
+
+/* =========================================================
+   LOGIN SCREEN
+========================================================= */
+
+function LoginScreen({
+  onLogin,
+  onCreateAccount,
 }) {
-  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] =
-    useState("");
 
-  const createAccount = () => {
-    if (
-      !name ||
-      !email ||
-      !password ||
-      !confirmPassword
-    ) {
+  const handleLogin = () => {
+    if (!email || !password) {
       Alert.alert(
         "Missing Information",
-        "Please complete all fields."
+        "Please enter your email and password."
       );
       return;
     }
 
-    if (password !== confirmPassword) {
-      Alert.alert(
-        "Password Error",
-        "Passwords do not match."
-      );
-      return;
-    }
-
-    if (password.length < 6) {
-      Alert.alert(
-        "Password Error",
-        "Password must be at least 6 characters."
-      );
-      return;
-    }
-
-    Alert.alert(
-      "Account Created",
-      "Your MedSked account has been created.",
-      [
-        {
-          text: "Continue",
-          onPress: onAccountCreated,
-        },
-      ]
-    );
+    onLogin();
   };
 
   return (
@@ -1171,153 +1414,7 @@ function CreateAccountScreen({
         }
       >
         <ScrollView
-          contentContainerStyle={
-            styles.createContent
-          }
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}
-        >
-          <TouchableOpacity
-            style={styles.backButton}
-            onPress={onBack}
-          >
-            <Ionicons
-              name="arrow-back"
-              size={20}
-              color={COLORS.text}
-            />
-
-            <Text style={styles.backText}>
-              Back to Sign In
-            </Text>
-          </TouchableOpacity>
-
-          <View style={styles.createLogo}>
-            <Logo />
-          </View>
-
-          <Text style={styles.loginTitle}>
-            Create account
-          </Text>
-
-          <Text style={styles.loginSubtitle}>
-            Create your account to start managing
-            {"\n"}
-            your medication schedule.
-          </Text>
-
-          <Text style={styles.loginLabel}>
-            Full Name
-          </Text>
-
-          <TextInput
-            value={name}
-            onChangeText={setName}
-            placeholder="Enter your full name"
-            placeholderTextColor={COLORS.muted}
-            style={styles.loginInput}
-          />
-
-          <Text style={styles.loginLabel}>
-            Email Address
-          </Text>
-
-          <TextInput
-            value={email}
-            onChangeText={setEmail}
-            placeholder="Enter your email"
-            placeholderTextColor={COLORS.muted}
-            style={styles.loginInput}
-            keyboardType="email-address"
-            autoCapitalize="none"
-          />
-
-          <Text style={styles.loginLabel}>
-            Password
-          </Text>
-
-          <TextInput
-            value={password}
-            onChangeText={setPassword}
-            placeholder="Create a password"
-            placeholderTextColor={COLORS.muted}
-            style={styles.loginInput}
-            secureTextEntry
-          />
-
-          <Text style={styles.loginLabel}>
-            Confirm Password
-          </Text>
-
-          <TextInput
-            value={confirmPassword}
-            onChangeText={setConfirmPassword}
-            placeholder="Confirm your password"
-            placeholderTextColor={COLORS.muted}
-            style={styles.loginInput}
-            secureTextEntry
-          />
-
-          <TouchableOpacity
-            style={styles.loginButton}
-            onPress={createAccount}
-          >
-            <Text style={styles.loginButtonText}>
-              Create Account
-            </Text>
-          </TouchableOpacity>
-
-          <View style={styles.loginDivider} />
-
-          <Text style={styles.noAccount}>
-            Already have an account?
-          </Text>
-
-          <TouchableOpacity
-            style={styles.createButton}
-            onPress={onBack}
-          >
-            <Text style={styles.createButtonText}>
-              Sign In
-            </Text>
-          </TouchableOpacity>
-        </ScrollView>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
-  );
-}
-
-// =========================================================
-// LOGIN SCREEN
-// =========================================================
-
-function LoginScreen({
-  onLogin,
-  onCreateAccount,
-}) {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] =
-    useState("");
-
-  return (
-    <SafeAreaView style={styles.loginSafe}>
-      <StatusBar
-        barStyle="light-content"
-        backgroundColor={COLORS.bg}
-      />
-
-      <KeyboardAvoidingView
-        style={{ flex: 1 }}
-        behavior={
-          Platform.OS === "ios"
-            ? "padding"
-            : undefined
-        }
-      >
-        <ScrollView
-          contentContainerStyle={
-            styles.loginContent
-          }
+          contentContainerStyle={styles.loginContent}
           keyboardShouldPersistTaps="handled"
         >
           <View style={styles.loginLogo}>
@@ -1329,9 +1426,8 @@ function LoginScreen({
           </Text>
 
           <Text style={styles.loginSubtitle}>
-            Sign in to continue managing your
-            {"\n"}
-            household medication schedule.
+            Sign in to continue managing{"\n"}
+            your household medication schedule.
           </Text>
 
           <Text style={styles.loginLabel}>
@@ -1361,7 +1457,14 @@ function LoginScreen({
             secureTextEntry
           />
 
-          <TouchableOpacity>
+          <TouchableOpacity
+            onPress={() =>
+              Alert.alert(
+                "Forgot Password",
+                "Password reset will be available here."
+              )
+            }
+          >
             <Text style={styles.forgotPassword}>
               Forgot password?
             </Text>
@@ -1369,7 +1472,7 @@ function LoginScreen({
 
           <TouchableOpacity
             style={styles.loginButton}
-            onPress={onLogin}
+            onPress={handleLogin}
           >
             <Text style={styles.loginButtonText}>
               Sign In
@@ -1396,191 +1499,275 @@ function LoginScreen({
   );
 }
 
-// =========================================================
-// PROFILE / MORE SCREEN
-// =========================================================
+/* =========================================================
+   CREATE ACCOUNT SCREEN
+   WITH CAREGIVER / PATIENT ROLE
+========================================================= */
 
-function MoreScreen({ onLogout }) {
+function CreateAccountScreen({
+  onCreateAccount,
+  onBackToLogin,
+}) {
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] =
+    useState("");
+
+  const [role, setRole] = useState("");
+
+  const handleCreateAccount = () => {
+    if (
+      !name ||
+      !email ||
+      !password ||
+      !confirmPassword ||
+      !role
+    ) {
+      Alert.alert(
+        "Missing Information",
+        "Please fill in all fields and select your household role."
+      );
+      return;
+    }
+
+    if (password.length < 6) {
+      Alert.alert(
+        "Password",
+        "Password must be at least 6 characters."
+      );
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      Alert.alert(
+        "Password Error",
+        "Passwords do not match."
+      );
+      return;
+    }
+
+    onCreateAccount({
+      name,
+      email,
+      password,
+      role,
+    });
+  };
+
   return (
-    <ScrollView
-      style={styles.screen}
-      contentContainerStyle={styles.content}
-      showsVerticalScrollIndicator={false}
-    >
-      <Text style={styles.pageTitle}>
-        Profile
-      </Text>
+    <SafeAreaView style={styles.loginSafe}>
+      <StatusBar
+        barStyle="light-content"
+        backgroundColor={COLORS.bg}
+      />
 
-      <Text style={styles.patientName}>
-        Account settings
-      </Text>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={
+          Platform.OS === "ios"
+            ? "padding"
+            : undefined
+        }
+      >
+        <ScrollView
+          contentContainerStyle={styles.loginContent}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.loginLogo}>
+            <Logo />
+          </View>
 
-      {/* PROFILE CARD */}
-
-      <View style={styles.profileCard}>
-        <View style={styles.profileIcon}>
-          <Ionicons
-            name="person"
-            size={32}
-            color={COLORS.teal}
-          />
-        </View>
-
-        <View style={styles.profileInfo}>
-          <Text style={styles.profileName}>
-            Eleanor Whitfield
+          <Text style={styles.loginTitle}>
+            Create Account
           </Text>
 
-          <Text style={styles.profileEmail}>
-            eleanor@example.com
+          <Text style={styles.loginSubtitle}>
+            Create your account to start managing your{"\n"}
+            medication schedule.
           </Text>
 
-          <View style={styles.patientRole}>
-            <Text style={styles.patientRoleText}>
-              Patient
-            </Text>
-          </View>
-        </View>
-      </View>
+          {/* FULL NAME */}
 
-      {/* SETTINGS */}
-
-      <View style={styles.settingsCard}>
-        <Text style={styles.settingsTitle}>
-          Account
-        </Text>
-
-        <TouchableOpacity
-          style={styles.settingRow}
-        >
-          <View style={styles.settingIcon}>
-            <Ionicons
-              name="person-outline"
-              size={20}
-              color={COLORS.teal}
-            />
-          </View>
-
-          <View style={styles.settingInfo}>
-            <Text style={styles.settingName}>
-              Profile
-            </Text>
-
-            <Text style={styles.settingDescription}>
-              Manage your personal information
-            </Text>
-          </View>
-
-          <Ionicons
-            name="chevron-forward"
-            size={18}
-            color={COLORS.muted}
-          />
-        </TouchableOpacity>
-        
-        <TouchableOpacity
-          style={styles.settingRow}
-        >
-          <View style={styles.settingIcon}>
-            <Ionicons
-              name="notifications-outline"
-              size={20}
-              color={COLORS.teal}
-            />
-          </View>
-
-          <View style={styles.settingInfo}>
-            <Text style={styles.settingName}>
-              Notifications
-            </Text>
-
-            <Text style={styles.settingDescription}>
-              Manage medication reminders
-            </Text>
-          </View>
-
-          <Ionicons
-            name="chevron-forward"
-            size={18}
-            color={COLORS.muted}
-          />
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.settingRow}
-        >
-          <View style={styles.settingIcon}>
-            <Ionicons
-              name="person-outline"
-              size={20}
-              color={COLORS.teal}
-            />
-          </View>
-
-          <View style={styles.settingInfo}>
-            <Text style={styles.settingName}>
-              Reports
-            </Text>
-
-            <Text style={styles.settingDescription}>
-              Eleanor Whitfield
-            </Text>
-          </View>
-
-          <Ionicons
-            name="chevron-forward"
-            size={18}
-            color={COLORS.muted}
-          />
-        </TouchableOpacity>
-
-      </View>
-
-      {/* LOGOUT */}
-
-      <View style={styles.logoutCard}>
-        <View style={styles.logoutHeader}>
-          <View style={styles.logoutIcon}>
-            <Ionicons
-              name="log-out-outline"
-              size={22}
-              color={COLORS.red}
-            />
-          </View>
-
-          <View style={{ flex: 1 }}>
-            <Text style={styles.logoutTitle}>
-              Log Out
-            </Text>
-
-            <Text style={styles.logoutDescription}>
-              Sign out of your MedSked account
-            </Text>
-          </View>
-        </View>
-
-        <TouchableOpacity
-          style={styles.logoutButton}
-          onPress={onLogout}
-        >
-          <Ionicons
-            name="log-out-outline"
-            size={19}
-            color={COLORS.red}
-          />
-
-          <Text style={styles.logoutButtonText}>
-            Log Out
+          <Text style={styles.loginLabel}>
+            Full Name
           </Text>
-        </TouchableOpacity>
-      </View>
-    </ScrollView>
+
+          <TextInput
+            value={name}
+            onChangeText={setName}
+            placeholder="Enter your full name"
+            placeholderTextColor={COLORS.muted}
+            style={styles.loginInput}
+          />
+
+          {/* EMAIL */}
+
+          <Text style={styles.loginLabel}>
+            Email Address
+          </Text>
+
+          <TextInput
+            value={email}
+            onChangeText={setEmail}
+            placeholder="Enter your email"
+            placeholderTextColor={COLORS.muted}
+            style={styles.loginInput}
+            keyboardType="email-address"
+            autoCapitalize="none"
+          />
+
+          {/* PASSWORD */}
+
+          <Text style={styles.loginLabel}>
+            Password
+          </Text>
+
+          <TextInput
+            value={password}
+            onChangeText={setPassword}
+            placeholder="Create a password"
+            placeholderTextColor={COLORS.muted}
+            style={styles.loginInput}
+            secureTextEntry
+          />
+
+          {/* CONFIRM PASSWORD */}
+
+          <Text style={styles.loginLabel}>
+            Confirm Password
+          </Text>
+
+          <TextInput
+            value={confirmPassword}
+            onChangeText={setConfirmPassword}
+            placeholder="Confirm your password"
+            placeholderTextColor={COLORS.muted}
+            style={styles.loginInput}
+            secureTextEntry
+          />
+
+          {/* =================================================
+              HOUSEHOLD ROLE
+          ================================================= */}
+
+          <Text style={styles.roleTitle}>
+            Your role in this household
+          </Text>
+
+          <View style={styles.roleRow}>
+            {/* CAREGIVER */}
+
+            <TouchableOpacity
+              style={[
+                styles.roleCard,
+                role === "Caregiver" &&
+                  styles.roleCardSelected,
+              ]}
+              onPress={() =>
+                setRole("Caregiver")
+              }
+              activeOpacity={0.8}
+            >
+              <View style={styles.roleTopRow}>
+                <Text
+                  style={[
+                    styles.roleName,
+                    role === "Caregiver" &&
+                      styles.roleNameSelected,
+                  ]}
+                >
+                  Caregiver
+                </Text>
+
+                {role === "Caregiver" && (
+                  <Ionicons
+                    name="checkmark-circle"
+                    size={20}
+                    color={COLORS.teal}
+                  />
+                )}
+              </View>
+
+              <Text style={styles.roleDescription}>
+                Manages the schedule
+              </Text>
+            </TouchableOpacity>
+
+            {/* PATIENT */}
+
+            <TouchableOpacity
+              style={[
+                styles.roleCard,
+                role === "Patient" &&
+                  styles.roleCardSelected,
+              ]}
+              onPress={() =>
+                setRole("Patient")
+              }
+              activeOpacity={0.8}
+            >
+              <View style={styles.roleTopRow}>
+                <Text
+                  style={[
+                    styles.roleName,
+                    role === "Patient" &&
+                      styles.roleNameSelected,
+                  ]}
+                >
+                  Patient
+                </Text>
+
+                {role === "Patient" && (
+                  <Ionicons
+                    name="checkmark-circle"
+                    size={20}
+                    color={COLORS.teal}
+                  />
+                )}
+              </View>
+
+              <Text style={styles.roleDescription}>
+                Follows the schedule
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* CREATE ACCOUNT */}
+
+          <TouchableOpacity
+            style={styles.loginButton}
+            onPress={handleCreateAccount}
+          >
+            <Text style={styles.loginButtonText}>
+              Create Account
+            </Text>
+          </TouchableOpacity>
+
+          <View style={styles.loginDivider} />
+
+          <Text style={styles.noAccount}>
+            Already have an account?
+          </Text>
+
+          <TouchableOpacity
+            style={styles.createButton}
+            onPress={onBackToLogin}
+          >
+            <Text style={styles.createButtonText}>
+              Back to Sign In
+            </Text>
+          </TouchableOpacity>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 
-// =========================================================
-// APP
-// =========================================================
+/* =========================================================
+   APP
+========================================================= */
 
 export default function App() {
   const [screen, setScreen] =
@@ -1589,23 +1776,65 @@ export default function App() {
   const [activeTab, setActiveTab] =
     useState("home");
 
-  // LOGIN
-  const handleLogin = () => {
-    setActiveTab("home");
-    setScreen("app");
-  };
+  const [accountRole, setAccountRole] =
+    useState("Patient");
 
-  // CREATE ACCOUNT
-  const handleCreateAccount = () => {
-    setScreen("create");
-  };
+  /* =======================================================
+     LOGIN
+  ======================================================= */
 
-  // ACCOUNT CREATED
-  const handleAccountCreated = () => {
-    setScreen("login");
-  };
+  if (screen === "login") {
+    return (
+      <LoginScreen
+        onLogin={() => {
+          setActiveTab("home");
+          setScreen("app");
+        }}
+        onCreateAccount={() => {
+          setScreen("create");
+        }}
+      />
+    );
+  }
 
-  // LOGOUT
+  /* =======================================================
+     CREATE ACCOUNT
+  ======================================================= */
+
+  if (screen === "create") {
+    return (
+      <CreateAccountScreen
+        onCreateAccount={(account) => {
+          console.log(
+            "Account created:",
+            account
+          );
+
+          setAccountRole(account.role);
+
+          Alert.alert(
+            "Success",
+            `Your ${account.role.toLowerCase()} account has been created successfully!`,
+            [
+              {
+                text: "OK",
+                onPress: () =>
+                  setScreen("login"),
+              },
+            ]
+          );
+        }}
+        onBackToLogin={() => {
+          setScreen("login");
+        }}
+      />
+    );
+  }
+
+  /* =======================================================
+     LOGOUT
+  ======================================================= */
+
   const handleLogout = () => {
     Alert.alert(
       "Log Out",
@@ -1627,27 +1856,18 @@ export default function App() {
     );
   };
 
-  // CREATE ACCOUNT SCREEN
-  if (screen === "create") {
-    return (
-      <CreateAccountScreen
-        onBack={() => setScreen("login")}
-        onAccountCreated={handleAccountCreated}
-      />
-    );
-  }
+  /* =======================================================
+     PROFILE
+  ======================================================= */
 
-  // LOGIN SCREEN
-  if (screen === "login") {
-    return (
-      <LoginScreen
-        onLogin={handleLogin}
-        onCreateAccount={handleCreateAccount}
-      />
-    );
-  }
+  const openProfile = () => {
+    setActiveTab("profile");
+  };
 
-  // MAIN APP
+  /* =======================================================
+     MAIN SCREEN
+  ======================================================= */
+
   function renderScreen() {
     if (activeTab === "home") {
       return (
@@ -1670,8 +1890,12 @@ export default function App() {
     }
 
     if (activeTab === "more") {
+      return <ReportsScreen />;
+    }
+
+    if (activeTab === "profile") {
       return (
-        <MoreScreen
+        <ProfileScreen
           onLogout={handleLogout}
         />
       );
@@ -1691,25 +1915,34 @@ export default function App() {
         backgroundColor={COLORS.bg}
       />
 
-      <TopHeader />
+      <TopHeader
+        onLogout={handleLogout}
+        onProfile={openProfile}
+      />
 
       <View style={{ flex: 1 }}>
         {renderScreen()}
       </View>
 
       <BottomNav
-        active={activeTab}
+        active={
+          activeTab === "profile"
+            ? "more"
+            : activeTab
+        }
         setActive={setActiveTab}
       />
     </SafeAreaView>
   );
 }
 
-// =========================================================
-// STYLES
-// =========================================================
+/* =========================================================
+   STYLES
+========================================================= */
 
 const styles = StyleSheet.create({
+  /* APP */
+
   app: {
     flex: 1,
     backgroundColor: COLORS.bg,
@@ -1726,9 +1959,14 @@ const styles = StyleSheet.create({
     paddingBottom: 30,
   },
 
-  // =======================================================
-  // LOGO
-  // =======================================================
+logoImage: {
+  width: 47,
+  height: 47,
+  marginRight: 10,
+},
+  /* =======================================================
+     LOGO
+  ======================================================= */
 
   logoContainer: {
     flexDirection: "row",
@@ -1757,9 +1995,9 @@ const styles = StyleSheet.create({
     marginTop: 1,
   },
 
-  // =======================================================
-  // HEADER
-  // =======================================================
+  /* =======================================================
+     HEADER
+  ======================================================= */
 
   topHeader: {
     height: 74,
@@ -1770,6 +2008,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     backgroundColor: COLORS.bg,
+    zIndex: 100,
   },
 
   headerRight: {
@@ -1785,13 +2024,13 @@ const styles = StyleSheet.create({
     borderRadius: 15,
     flexDirection: "row",
     alignItems: "center",
-    gap: 6,
   },
 
   patientText: {
     color: COLORS.text,
     fontSize: 12,
     fontWeight: "700",
+    marginHorizontal: 6,
   },
 
   notification: {
@@ -1817,9 +2056,54 @@ const styles = StyleSheet.create({
     fontWeight: "900",
   },
 
-  // =======================================================
-  // TITLES
-  // =======================================================
+  /* =======================================================
+     PROFILE DROPDOWN
+  ======================================================= */
+
+  profileMenu: {
+    position: "absolute",
+    top: 50,
+    right: 0,
+    width: 155,
+    backgroundColor: COLORS.card,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    borderRadius: 12,
+    paddingVertical: 7,
+    zIndex: 999,
+    elevation: 10,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+  },
+
+  menuItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+  },
+
+  menuText: {
+    color: COLORS.text,
+    fontSize: 12,
+    fontWeight: "800",
+    marginLeft: 10,
+  },
+
+  menuDivider: {
+    height: 1,
+    backgroundColor: COLORS.border,
+    marginHorizontal: 10,
+  },
+
+  /* =======================================================
+     TITLES
+  ======================================================= */
 
   pageTitle: {
     color: COLORS.text,
@@ -1847,9 +2131,9 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
 
-  // =======================================================
-  // STAT GRID
-  // =======================================================
+  /* =======================================================
+     STATS
+  ======================================================= */
 
   statsGrid: {
     flexDirection: "row",
@@ -1910,9 +2194,9 @@ const styles = StyleSheet.create({
     lineHeight: 15,
   },
 
-  // =======================================================
-  // CARDS
-  // =======================================================
+  /* =======================================================
+     CARDS
+  ======================================================= */
 
   largeCard: {
     backgroundColor: COLORS.card,
@@ -2004,9 +2288,9 @@ const styles = StyleSheet.create({
     fontWeight: "800",
   },
 
-  // =======================================================
-  // REFILL
-  // =======================================================
+  /* =======================================================
+     REFILL
+  ======================================================= */
 
   refillRow: {
     flexDirection: "row",
@@ -2047,10 +2331,6 @@ const styles = StyleSheet.create({
     fontWeight: "900",
   },
 
-  // =======================================================
-  // ATTENTION
-  // =======================================================
-
   attentionCard: {
     backgroundColor: "#14211D",
     borderWidth: 1,
@@ -2072,9 +2352,9 @@ const styles = StyleSheet.create({
     marginTop: 5,
   },
 
-  // =======================================================
-  // BOTTOM NAV
-  // =======================================================
+  /* =======================================================
+     BOTTOM NAV
+  ======================================================= */
 
   bottomNav: {
     height: 74,
@@ -2111,15 +2391,14 @@ const styles = StyleSheet.create({
     fontWeight: "900",
   },
 
-  // =======================================================
-  // FILTER
-  // =======================================================
+  /* =======================================================
+     FILTER
+  ======================================================= */
 
   filterRow: {
     flexDirection: "row",
     marginTop: 21,
     marginBottom: 13,
-    gap: 6,
   },
 
   filterButton: {
@@ -2128,6 +2407,7 @@ const styles = StyleSheet.create({
     height: 33,
     borderRadius: 17,
     justifyContent: "center",
+    marginRight: 6,
   },
 
   filterActive: {
@@ -2144,9 +2424,16 @@ const styles = StyleSheet.create({
     color: COLORS.bg,
   },
 
-  // =======================================================
-  // DOSE GROUP
-  // =======================================================
+  emptyText: {
+    color: COLORS.muted,
+    fontSize: 12,
+    textAlign: "center",
+    paddingVertical: 15,
+  },
+
+  /* =======================================================
+     DOSE GROUP
+  ======================================================= */
 
   doseGroup: {
     backgroundColor: COLORS.card,
@@ -2182,30 +2469,30 @@ const styles = StyleSheet.create({
     padding: 12,
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 9,
+    marginTop: 8,
   },
 
   statusBadge: {
-    paddingHorizontal: 12,
-    paddingVertical: 7,
-    borderRadius: 15,
-  },
-
-  statusTaken: {
-    backgroundColor: COLORS.teal,
+    paddingHorizontal: 9,
+    paddingVertical: 6,
+    borderRadius: 12,
   },
 
   statusMissed: {
-    backgroundColor: "#572329",
+    backgroundColor: "#522029",
+  },
+
+  statusTaken: {
+    backgroundColor: "#104A38",
   },
 
   statusUpcoming: {
-    backgroundColor: "#143A3E",
+    backgroundColor: "#123D42",
   },
 
   statusText: {
-    color: COLORS.bg,
-    fontSize: 10,
+    color: COLORS.green,
+    fontSize: 9,
     fontWeight: "900",
   },
 
@@ -2213,33 +2500,33 @@ const styles = StyleSheet.create({
     color: COLORS.red,
   },
 
-  // =======================================================
-  // MEDICATIONS
-  // =======================================================
+  /* =======================================================
+     MEDICATION
+  ======================================================= */
 
   addMedication: {
-    alignSelf: "flex-start",
     backgroundColor: COLORS.teal,
+    height: 43,
     borderRadius: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 11,
-    marginTop: 13,
-    marginBottom: 8,
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 18,
+    marginBottom: 12,
   },
 
   addMedicationText: {
     color: COLORS.bg,
-    fontSize: 13,
     fontWeight: "900",
+    fontSize: 12,
   },
 
   medicationCard: {
     backgroundColor: COLORS.card,
     borderWidth: 1,
     borderColor: COLORS.border,
-    borderRadius: 16,
+    borderRadius: 15,
     padding: 16,
-    marginTop: 10,
+    marginBottom: 12,
   },
 
   medicationTop: {
@@ -2247,56 +2534,61 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
 
+  medicationDetails: {
+    marginLeft: 12,
+    flex: 1,
+  },
+
   medicationName: {
     color: COLORS.text,
-    fontSize: 19,
+    fontSize: 16,
     fontWeight: "900",
-    marginLeft: 11,
   },
 
   medicationDose: {
-    color: "#89AAAD",
+    color: COLORS.muted,
+    fontWeight: "600",
   },
 
   medicationInstruction: {
-    color: "#89AAAD",
-    fontSize: 12,
-    marginLeft: 11,
+    color: COLORS.muted,
+    fontSize: 11,
     marginTop: 4,
   },
 
   medicationDescription: {
-    color: "#8EABAD",
-    fontSize: 12,
-    marginTop: 18,
+    color: "#88A5A8",
+    fontSize: 11,
+    marginTop: 14,
   },
 
   timeBadge: {
-    backgroundColor: "#0A4147",
     alignSelf: "flex-start",
-    paddingHorizontal: 9,
-    paddingVertical: 6,
+    backgroundColor: "#12383D",
     borderRadius: 12,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
     marginTop: 10,
   },
 
   timeBadgeText: {
-    color: COLORS.text,
+    color: COLORS.teal,
     fontSize: 10,
     fontWeight: "800",
   },
 
   prescribed: {
-    color: "#789A9D",
+    color: COLORS.muted,
     fontSize: 10,
-    marginTop: 14,
+    marginTop: 10,
   },
 
   supplyBox: {
-    backgroundColor: "#10363A",
-    borderRadius: 10,
-    padding: 12,
     marginTop: 13,
+    padding: 11,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    borderRadius: 10,
   },
 
   supplyHeader: {
@@ -2307,20 +2599,19 @@ const styles = StyleSheet.create({
   supplyTitle: {
     color: COLORS.text,
     fontSize: 11,
-    fontWeight: "900",
+    fontWeight: "800",
   },
 
   supplyValue: {
-    color: COLORS.text,
-    fontSize: 11,
-    fontWeight: "800",
+    color: COLORS.muted,
+    fontSize: 10,
   },
 
   progressBackground: {
     height: 6,
-    backgroundColor: "#183D40",
+    backgroundColor: "#17383C",
     borderRadius: 5,
-    marginTop: 10,
+    marginTop: 9,
     overflow: "hidden",
   },
 
@@ -2332,49 +2623,53 @@ const styles = StyleSheet.create({
 
   medButtons: {
     flexDirection: "row",
-    gap: 8,
     marginTop: 13,
   },
 
   refillButton: {
-    backgroundColor: COLORS.teal,
-    paddingHorizontal: 15,
-    paddingVertical: 10,
-    borderRadius: 9,
+    flex: 1,
+    height: 38,
+    backgroundColor: "#123C40",
+    borderRadius: 8,
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 5,
   },
 
   refillButtonText: {
-    color: COLORS.bg,
-    fontSize: 12,
+    color: COLORS.teal,
+    fontSize: 11,
     fontWeight: "900",
   },
 
   editButton: {
+    flex: 1,
+    height: 38,
     borderWidth: 1,
     borderColor: COLORS.border,
-    paddingHorizontal: 15,
-    paddingVertical: 10,
-    borderRadius: 9,
+    borderRadius: 8,
+    alignItems: "center",
+    justifyContent: "center",
+    marginLeft: 5,
   },
 
   editButtonText: {
     color: COLORS.text,
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: "900",
   },
 
-  // =======================================================
-  // STATS
-  // =======================================================
+  /* =======================================================
+     STATS
+  ======================================================= */
 
   adherenceCard: {
     backgroundColor: COLORS.card,
     borderWidth: 1,
     borderColor: COLORS.border,
     borderRadius: 15,
-    marginTop: 22,
-    padding: 22,
-    alignItems: "center",
+    padding: 17,
+    marginTop: 16,
   },
 
   adherenceTitle: {
@@ -2385,48 +2680,49 @@ const styles = StyleSheet.create({
 
   adherenceSubtitle: {
     color: COLORS.muted,
-    fontSize: 12,
-    marginTop: 5,
+    fontSize: 11,
+    marginTop: 4,
   },
 
   circleContainer: {
-    marginTop: 20,
+    alignItems: "center",
+    marginVertical: 22,
   },
 
   outerCircle: {
-    width: 190,
-    height: 190,
-    borderRadius: 95,
-    borderWidth: 12,
-    borderColor: "#FFB72F",
+    width: 145,
+    height: 145,
+    borderRadius: 73,
+    borderWidth: 13,
+    borderColor: COLORS.teal,
     alignItems: "center",
     justifyContent: "center",
   },
 
   innerCircle: {
     alignItems: "center",
+    justifyContent: "center",
   },
 
   percent: {
     color: COLORS.text,
-    fontSize: 30,
+    fontSize: 29,
     fontWeight: "900",
   },
 
   percentLabel: {
     color: COLORS.muted,
-    fontSize: 11,
+    fontSize: 10,
+    marginTop: 2,
   },
 
   outcomeRow: {
-    width: "100%",
     flexDirection: "row",
     justifyContent: "space-around",
-    marginTop: 21,
   },
 
   outcomeNumber: {
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: "900",
     textAlign: "center",
   },
@@ -2435,7 +2731,7 @@ const styles = StyleSheet.create({
     color: COLORS.muted,
     fontSize: 10,
     textAlign: "center",
-    marginTop: 4,
+    marginTop: 3,
   },
 
   chartCard: {
@@ -2443,58 +2739,58 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: COLORS.border,
     borderRadius: 15,
-    marginTop: 14,
-    padding: 16,
+    padding: 17,
+    marginTop: 12,
   },
 
   chartTitle: {
     color: COLORS.text,
-    fontSize: 17,
+    fontSize: 16,
     fontWeight: "900",
   },
 
   chartSubtitle: {
     color: COLORS.muted,
     fontSize: 11,
-    marginTop: 5,
+    marginTop: 4,
   },
 
   barChart: {
-    height: 180,
-    marginTop: 17,
+    height: 160,
     flexDirection: "row",
     alignItems: "flex-end",
-    justifyContent: "space-around",
+    justifyContent: "space-between",
+    marginTop: 20,
   },
 
   barColumn: {
-    height: 150,
-    justifyContent: "flex-end",
     alignItems: "center",
+    justifyContent: "flex-end",
+    height: "100%",
   },
 
   bar: {
-    width: 11,
+    width: 10,
     backgroundColor: COLORS.teal,
-    borderRadius: 6,
+    borderRadius: 4,
   },
 
   barLabel: {
-    color: "#63888C",
+    color: COLORS.muted,
     fontSize: 8,
-    marginTop: 6,
+    marginTop: 5,
   },
 
   greenCircleContainer: {
     alignItems: "center",
-    marginTop: 18,
-    marginBottom: 2,
+    marginTop: 20,
+    marginBottom: 8,
   },
 
   greenOuterCircle: {
-    width: 170,
-    height: 170,
-    borderRadius: 85,
+    width: 130,
+    height: 130,
+    borderRadius: 65,
     borderWidth: 12,
     borderColor: COLORS.green,
     alignItems: "center",
@@ -2508,7 +2804,7 @@ const styles = StyleSheet.create({
 
   doseNumber: {
     color: COLORS.text,
-    fontSize: 25,
+    fontSize: 31,
     fontWeight: "900",
   },
 
@@ -2517,8 +2813,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: COLORS.border,
     borderRadius: 15,
-    marginTop: 14,
-    padding: 16,
+    padding: 17,
+    marginTop: 12,
   },
 
   adherenceRow: {
@@ -2532,21 +2828,21 @@ const styles = StyleSheet.create({
 
   adherenceMedName: {
     color: COLORS.text,
-    fontSize: 13,
-    fontWeight: "900",
+    fontSize: 11,
+    fontWeight: "800",
   },
 
   adherenceValue: {
     color: COLORS.teal,
-    fontSize: 13,
+    fontSize: 11,
     fontWeight: "900",
   },
 
   adherenceBarBackground: {
-    height: 5,
-    backgroundColor: "#19383B",
+    height: 7,
+    backgroundColor: "#17383C",
     borderRadius: 5,
-    marginTop: 9,
+    marginTop: 7,
     overflow: "hidden",
   },
 
@@ -2557,36 +2853,36 @@ const styles = StyleSheet.create({
   },
 
   trackedText: {
-    color: "#729396",
+    color: COLORS.muted,
     fontSize: 9,
-    marginTop: 6,
+    marginTop: 4,
   },
 
-  // =======================================================
-  // REPORTS
-  // =======================================================
+  /* =======================================================
+     REPORTS
+  ======================================================= */
 
   reportTitle: {
     color: COLORS.text,
     fontSize: 27,
     fontWeight: "900",
-    marginTop: 30,
+    marginTop: 32,
   },
 
   reportSubtitle: {
     color: COLORS.muted,
     fontSize: 12,
-    marginTop: 3,
+    marginTop: 4,
   },
 
   exportButton: {
-    height: 38,
+    alignSelf: "flex-start",
     borderWidth: 1,
     borderColor: COLORS.border,
     borderRadius: 9,
-    justifyContent: "center",
     paddingHorizontal: 12,
-    marginTop: 7,
+    paddingVertical: 9,
+    marginTop: 10,
   },
 
   exportText: {
@@ -2600,32 +2896,32 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: COLORS.border,
     borderRadius: 15,
-    marginTop: 15,
     padding: 16,
+    marginTop: 16,
   },
 
   reportNameRow: {
     flexDirection: "row",
+    justifyContent: "space-between",
     alignItems: "center",
   },
 
   reportName: {
     color: COLORS.text,
-    fontSize: 15,
+    fontSize: 16,
     fontWeight: "900",
   },
 
   adherenceBadge: {
     backgroundColor: COLORS.teal,
-    borderRadius: 12,
-    paddingHorizontal: 8,
+    borderRadius: 14,
+    paddingHorizontal: 9,
     paddingVertical: 5,
-    marginLeft: 8,
   },
 
   adherenceBadgeText: {
     color: COLORS.bg,
-    fontSize: 8,
+    fontSize: 9,
     fontWeight: "900",
   },
 
@@ -2638,11 +2934,11 @@ const styles = StyleSheet.create({
 
   generateButton: {
     alignSelf: "flex-start",
-    backgroundColor: "#103A3F",
-    borderRadius: 9,
-    paddingHorizontal: 10,
+    backgroundColor: "#123B40",
+    borderRadius: 8,
+    paddingHorizontal: 11,
     paddingVertical: 9,
-    marginTop: 12,
+    marginTop: 13,
   },
 
   generateText: {
@@ -2655,15 +2951,16 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     flexWrap: "wrap",
     justifyContent: "space-between",
-    marginTop: 14,
+    marginTop: 13,
   },
 
   reportStat: {
     width: "48%",
+    height: 70,
     borderWidth: 1,
     borderColor: COLORS.border,
     borderRadius: 10,
-    padding: 11,
+    padding: 10,
     marginBottom: 7,
   },
 
@@ -2683,22 +2980,23 @@ const styles = StyleSheet.create({
     color: COLORS.text,
     fontSize: 13,
     fontWeight: "900",
-    marginTop: 10,
+    marginTop: 6,
   },
 
   refillTags: {
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: 7,
     marginTop: 8,
   },
 
   refillTag: {
     borderWidth: 1,
     borderColor: COLORS.border,
-    borderRadius: 15,
-    paddingHorizontal: 10,
-    paddingVertical: 7,
+    borderRadius: 14,
+    paddingHorizontal: 9,
+    paddingVertical: 6,
+    marginRight: 6,
+    marginBottom: 5,
   },
 
   refillTagText: {
@@ -2707,9 +3005,154 @@ const styles = StyleSheet.create({
     fontWeight: "800",
   },
 
-  // =======================================================
-  // LOGIN
-  // =======================================================
+  /* =======================================================
+     PROFILE
+  ======================================================= */
+
+  profileSubtitle: {
+    color: COLORS.muted,
+    fontSize: 13,
+    marginTop: 4,
+  },
+
+  profileCard: {
+    backgroundColor: COLORS.card,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    borderRadius: 15,
+    padding: 18,
+    marginTop: 21,
+    flexDirection: "row",
+    alignItems: "center",
+  },
+
+  profileAvatar: {
+    width: 65,
+    height: 65,
+    borderRadius: 33,
+    backgroundColor: "#07565B",
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 15,
+  },
+
+  profileName: {
+    color: COLORS.text,
+    fontSize: 18,
+    fontWeight: "900",
+  },
+
+  profileEmail: {
+    color: COLORS.muted,
+    fontSize: 11,
+    marginTop: 4,
+  },
+
+  patientBadge: {
+    alignSelf: "flex-start",
+    backgroundColor: "#07565B",
+    borderRadius: 12,
+    paddingHorizontal: 9,
+    paddingVertical: 5,
+    marginTop: 7,
+  },
+
+  patientBadgeText: {
+    color: COLORS.teal,
+    fontSize: 9,
+    fontWeight: "900",
+  },
+
+  accountCard: {
+    backgroundColor: COLORS.card,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    borderRadius: 15,
+    paddingHorizontal: 16,
+    paddingTop: 17,
+    marginTop: 14,
+  },
+
+  accountTitle: {
+    color: COLORS.text,
+    fontSize: 17,
+    fontWeight: "900",
+  },
+
+  accountDivider: {
+    height: 1,
+    backgroundColor: COLORS.border,
+    marginTop: 12,
+  },
+
+  accountRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 13,
+  },
+
+  accountIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 10,
+    backgroundColor: "#07565B",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  accountInfo: {
+    flex: 1,
+    marginLeft: 11,
+  },
+
+  accountItemTitle: {
+    color: COLORS.text,
+    fontSize: 13,
+    fontWeight: "900",
+  },
+
+  accountItemSubtitle: {
+    color: COLORS.muted,
+    fontSize: 10,
+    marginTop: 3,
+  },
+
+  logoutCard: {
+    backgroundColor: "#28181C",
+    borderWidth: 1,
+    borderColor: "#51252C",
+    borderRadius: 15,
+    padding: 15,
+    marginTop: 14,
+    flexDirection: "row",
+    alignItems: "center",
+  },
+
+  logoutIcon: {
+    width: 43,
+    height: 43,
+    borderRadius: 11,
+    backgroundColor: "#411C23",
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 12,
+  },
+
+  logoutTitle: {
+    color: COLORS.text,
+    fontSize: 14,
+    fontWeight: "900",
+  },
+
+  logoutSubtitle: {
+    color: COLORS.muted,
+    fontSize: 9,
+    marginTop: 3,
+  },
+
+  /* =======================================================
+     LOGIN
+  ======================================================= */
 
   loginSafe: {
     flex: 1,
@@ -2717,68 +3160,62 @@ const styles = StyleSheet.create({
   },
 
   loginContent: {
-    flexGrow: 1,
-    paddingHorizontal: 35,
-    paddingTop: 55,
-    paddingBottom: 30,
-    justifyContent: "center",
+    padding: 25,
+    paddingBottom: 50,
   },
 
   loginLogo: {
-    alignItems: "center",
-    marginBottom: 45,
+    marginBottom: 35,
   },
 
   loginTitle: {
     color: COLORS.text,
-    fontSize: 27,
+    fontSize: 29,
     fontWeight: "900",
-    textAlign: "center",
   },
 
   loginSubtitle: {
     color: COLORS.muted,
-    fontSize: 12,
-    lineHeight: 18,
-    textAlign: "center",
-    marginTop: 9,
-    marginBottom: 35,
+    fontSize: 13,
+    lineHeight: 19,
+    marginTop: 7,
+    marginBottom: 25,
   },
 
   loginLabel: {
     color: COLORS.text,
-    fontSize: 11,
-    fontWeight: "900",
-    marginBottom: 8,
+    fontSize: 12,
+    fontWeight: "800",
+    marginBottom: 7,
+    marginTop: 12,
   },
 
   loginInput: {
-    height: 45,
+    height: 48,
     borderWidth: 1,
     borderColor: COLORS.border,
-    borderRadius: 9,
-    backgroundColor: "#0B2428",
+    borderRadius: 10,
+    backgroundColor: COLORS.card,
     color: COLORS.text,
-    paddingHorizontal: 13,
+    paddingHorizontal: 14,
     fontSize: 12,
-    marginBottom: 18,
   },
 
   forgotPassword: {
     color: COLORS.teal,
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: "800",
     textAlign: "right",
-    marginTop: -7,
-    marginBottom: 20,
+    marginTop: 11,
   },
 
   loginButton: {
-    height: 45,
+    height: 48,
     backgroundColor: COLORS.teal,
-    borderRadius: 9,
+    borderRadius: 10,
     alignItems: "center",
     justifyContent: "center",
+    marginTop: 22,
   },
 
   loginButtonText: {
@@ -2790,13 +3227,12 @@ const styles = StyleSheet.create({
   loginDivider: {
     height: 1,
     backgroundColor: COLORS.border,
-    marginTop: 27,
-    marginBottom: 15,
+    marginVertical: 22,
   },
 
   noAccount: {
     color: COLORS.muted,
-    fontSize: 10,
+    fontSize: 11,
     textAlign: "center",
   },
 
@@ -2816,200 +3252,59 @@ const styles = StyleSheet.create({
     fontWeight: "900",
   },
 
-  // =======================================================
-  // CREATE ACCOUNT
-  // =======================================================
+  /* =======================================================
+     ROLE SELECTION
+  ======================================================= */
 
-  createContent: {
-    flexGrow: 1,
-    paddingHorizontal: 35,
-    paddingTop: 20,
-    paddingBottom: 35,
-  },
-
-  backButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 30,
-  },
-
-  backText: {
+  roleTitle: {
     color: COLORS.text,
-    fontSize: 12,
-    fontWeight: "700",
-    marginLeft: 7,
-  },
-
-  createLogo: {
-    alignItems: "center",
-    marginBottom: 30,
-  },
-
-  // =======================================================
-  // PROFILE
-  // =======================================================
-
-  profileCard: {
-    backgroundColor: COLORS.card,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    borderRadius: 16,
-    padding: 18,
+    fontSize: 13,
+    fontWeight: "900",
     marginTop: 22,
+    marginBottom: 10,
+  },
+
+  roleRow: {
     flexDirection: "row",
-    alignItems: "center",
+    justifyContent: "space-between",
   },
 
-  profileIcon: {
-    width: 65,
-    height: 65,
-    borderRadius: 33,
-    backgroundColor: "#0A4147",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-
-  profileInfo: {
-    marginLeft: 15,
-    flex: 1,
-  },
-
-  profileName: {
-    color: COLORS.text,
-    fontSize: 18,
-    fontWeight: "900",
-  },
-
-  profileEmail: {
-    color: COLORS.muted,
-    fontSize: 11,
-    marginTop: 4,
-  },
-
-  patientRole: {
-    alignSelf: "flex-start",
-    backgroundColor: "#103A3F",
-    paddingHorizontal: 9,
-    paddingVertical: 5,
-    borderRadius: 12,
-    marginTop: 7,
-  },
-
-  patientRoleText: {
-    color: COLORS.teal,
-    fontSize: 9,
-    fontWeight: "900",
-  },
-
-  settingsCard: {
+  roleCard: {
+    width: "48%",
+    minHeight: 82,
     backgroundColor: COLORS.card,
     borderWidth: 1,
     borderColor: COLORS.border,
-    borderRadius: 16,
-    padding: 16,
-    marginTop: 14,
+    borderRadius: 12,
+    padding: 13,
   },
 
-  settingsTitle: {
-    color: COLORS.text,
-    fontSize: 16,
-    fontWeight: "900",
-    marginBottom: 5,
+  roleCardSelected: {
+    borderWidth: 2,
+    borderColor: COLORS.teal,
+    backgroundColor: "#0D3034",
   },
 
-  settingRow: {
-    minHeight: 65,
+  roleTopRow: {
     flexDirection: "row",
     alignItems: "center",
-    borderTopWidth: 1,
-    borderTopColor: COLORS.border,
-    marginTop: 7,
-    paddingTop: 10,
+    justifyContent: "space-between",
   },
 
-  settingIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 10,
-    backgroundColor: "#0A4147",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-
-  settingInfo: {
-    flex: 1,
-    marginLeft: 12,
-  },
-
-  settingName: {
+  roleName: {
     color: COLORS.text,
     fontSize: 13,
     fontWeight: "900",
   },
 
-  settingDescription: {
+  roleNameSelected: {
+    color: COLORS.teal,
+  },
+
+  roleDescription: {
     color: COLORS.muted,
     fontSize: 10,
-    marginTop: 3,
-  },
-
-  // =======================================================
-  // LOGOUT
-  // =======================================================
-
-  logoutCard: {
-    backgroundColor: COLORS.card,
-    borderWidth: 1,
-    borderColor: "#52252A",
-    borderRadius: 16,
-    padding: 16,
-    marginTop: 14,
-    marginBottom: 20,
-  },
-
-  logoutHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-
-  logoutIcon: {
-    width: 43,
-    height: 43,
-    borderRadius: 11,
-    backgroundColor: "#3D2025",
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: 12,
-  },
-
-  logoutTitle: {
-    color: COLORS.text,
-    fontSize: 15,
-    fontWeight: "900",
-  },
-
-  logoutDescription: {
-    color: COLORS.muted,
-    fontSize: 10,
-    marginTop: 4,
-  },
-
-  logoutButton: {
-    height: 45,
-    borderWidth: 1,
-    borderColor: "#6A3037",
-    backgroundColor: "#351C21",
-    borderRadius: 9,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    marginTop: 15,
-  },
-
-  logoutButtonText: {
-    color: COLORS.red,
-    fontSize: 12,
-    fontWeight: "900",
-    marginLeft: 7,
+    lineHeight: 14,
+    marginTop: 7,
   },
 });
