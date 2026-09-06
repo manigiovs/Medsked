@@ -41,7 +41,7 @@ function Logo() {
   return (
     <View style={styles.logoContainer}>
       <Image
-        source={require("medsked.png")}
+        source={require("./assets/icon.png")}
         style={styles.logoImage}
         resizeMode="contain"
       />
@@ -1954,15 +1954,15 @@ const styles = StyleSheet.create({
   },
 
   content: {
-    paddingHorizontal: 18,
-    paddingTop: 23,
-    paddingBottom: 30,
+    paddingHorizontal: 14,
+    paddingTop: 18,
+    paddingBottom: 44,
   },
 
 logoImage: {
-  width: 47,
-  height: 47,
-  marginRight: 10,
+  width: 42,
+  height: 42,
+  marginRight: 8,
 },
   /* =======================================================
      LOGO
@@ -1974,8 +1974,8 @@ logoImage: {
   },
 
   logoIcon: {
-    width: 47,
-    height: 47,
+    width: 42,
+    height: 42,
     borderRadius: 11,
     backgroundColor: COLORS.teal,
     alignItems: "center",
@@ -1985,8 +1985,9 @@ logoImage: {
 
   logoText: {
     color: COLORS.text,
-    fontSize: 17,
+    fontSize: 15,
     fontWeight: "900",
+    flexShrink: 1,
   },
 
   logoSubtext: {
@@ -2000,10 +2001,17 @@ logoImage: {
   ======================================================= */
 
   topHeader: {
-    height: 74,
+    height:
+      Platform.OS === "android"
+        ? 64 + (StatusBar.currentHeight || 0)
+        : 64,
     borderBottomWidth: 1,
     borderBottomColor: COLORS.border,
-    paddingHorizontal: 20,
+    paddingHorizontal: 12,
+    paddingTop:
+      Platform.OS === "android"
+        ? StatusBar.currentHeight || 0
+        : 0,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
@@ -2014,11 +2022,12 @@ logoImage: {
   headerRight: {
     flexDirection: "row",
     alignItems: "center",
+    flexShrink: 0,
   },
 
   patientButton: {
-    height: 43,
-    paddingHorizontal: 14,
+    height: 38,
+    paddingHorizontal: 8,
     borderWidth: 1,
     borderColor: COLORS.border,
     borderRadius: 15,
@@ -2028,13 +2037,13 @@ logoImage: {
 
   patientText: {
     color: COLORS.text,
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: "700",
-    marginHorizontal: 6,
+    marginHorizontal: 4,
   },
 
   notification: {
-    marginLeft: 13,
+    marginLeft: 8,
     position: "relative",
   },
 
@@ -2107,7 +2116,7 @@ logoImage: {
 
   pageTitle: {
     color: COLORS.text,
-    fontSize: 27,
+    fontSize: 25,
     fontWeight: "900",
     letterSpacing: -0.5,
   },
@@ -2120,7 +2129,7 @@ logoImage: {
 
   greeting: {
     color: COLORS.text,
-    fontSize: 27,
+    fontSize: 24,
     fontWeight: "900",
     marginTop: 31,
   },
@@ -2143,13 +2152,13 @@ logoImage: {
   },
 
   smallStatCard: {
-    width: "48%",
-    minHeight: 150,
+    width: "48.5%",
+    minHeight: 132,
     backgroundColor: COLORS.card,
     borderWidth: 1,
     borderColor: COLORS.border,
     borderRadius: 15,
-    padding: 14,
+    padding: 12,
     marginBottom: 10,
   },
 
@@ -2217,6 +2226,7 @@ logoImage: {
     color: COLORS.text,
     fontSize: 17,
     fontWeight: "900",
+    flexShrink: 1,
   },
 
   cardSubtitle: {
@@ -2254,6 +2264,7 @@ logoImage: {
   doseInfo: {
     flex: 1,
     marginLeft: 12,
+    minWidth: 0,
   },
 
   medName: {
@@ -2357,7 +2368,7 @@ logoImage: {
   ======================================================= */
 
   bottomNav: {
-    height: 74,
+    height: Platform.OS === "android" ? 92 : 68,
     backgroundColor: "#07191C",
     borderTopWidth: 1,
     borderTopColor: COLORS.border,
@@ -2365,11 +2376,13 @@ logoImage: {
     alignItems: "center",
     justifyContent: "space-around",
     paddingHorizontal: 7,
+    paddingBottom: Platform.OS === "android" ? 24 : 0,
   },
 
   navItem: {
-    width: 55,
-    height: 58,
+    flex: 1,
+    maxWidth: 72,
+    height: 54,
     borderRadius: 10,
     alignItems: "center",
     justifyContent: "center",
