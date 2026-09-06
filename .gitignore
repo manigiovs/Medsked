@@ -13,4 +13,7 @@ __v0_jsx-dev-runtime.ts
 node_modules
 .expo/
 .next/
+dist/
+dist-debug/
+dist-logo-check/
 .DS_Store

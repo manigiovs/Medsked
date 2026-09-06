@@ -1385,6 +1385,7 @@ function LoginScreen({
 }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleLogin = () => {
     if (!email || !password) {
@@ -1448,14 +1449,43 @@ function LoginScreen({
             Password
           </Text>
 
-          <TextInput
-            value={password}
-            onChangeText={setPassword}
-            placeholder="Enter your password"
-            placeholderTextColor={COLORS.muted}
-            style={styles.loginInput}
-            secureTextEntry
-          />
+          <View style={styles.passwordInputWrapper}>
+            <TextInput
+              value={password}
+              onChangeText={setPassword}
+              placeholder="Enter your password"
+              placeholderTextColor={COLORS.muted}
+              style={[
+                styles.loginInput,
+                styles.passwordInput,
+              ]}
+              secureTextEntry={!showPassword}
+              autoCapitalize="none"
+            />
+
+            <TouchableOpacity
+              style={styles.passwordToggle}
+              onPress={() =>
+                setShowPassword((visible) => !visible)
+              }
+              accessibilityRole="button"
+              accessibilityLabel={
+                showPassword
+                  ? "Hide password"
+                  : "Show password"
+              }
+            >
+              <Ionicons
+                name={
+                  showPassword
+                    ? "eye-off-outline"
+                    : "eye-outline"
+                }
+                size={20}
+                color={COLORS.muted}
+              />
+            </TouchableOpacity>
+          </View>
 
           <TouchableOpacity
             onPress={() =>
@@ -1513,6 +1543,9 @@ function CreateAccountScreen({
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] =
     useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] =
+    useState(false);
 
   const [role, setRole] = useState("");
 
@@ -1624,14 +1657,43 @@ function CreateAccountScreen({
             Password
           </Text>
 
-          <TextInput
-            value={password}
-            onChangeText={setPassword}
-            placeholder="Create a password"
-            placeholderTextColor={COLORS.muted}
-            style={styles.loginInput}
-            secureTextEntry
-          />
+          <View style={styles.passwordInputWrapper}>
+            <TextInput
+              value={password}
+              onChangeText={setPassword}
+              placeholder="Create a password"
+              placeholderTextColor={COLORS.muted}
+              style={[
+                styles.loginInput,
+                styles.passwordInput,
+              ]}
+              secureTextEntry={!showPassword}
+              autoCapitalize="none"
+            />
+
+            <TouchableOpacity
+              style={styles.passwordToggle}
+              onPress={() =>
+                setShowPassword((visible) => !visible)
+              }
+              accessibilityRole="button"
+              accessibilityLabel={
+                showPassword
+                  ? "Hide password"
+                  : "Show password"
+              }
+            >
+              <Ionicons
+                name={
+                  showPassword
+                    ? "eye-off-outline"
+                    : "eye-outline"
+                }
+                size={20}
+                color={COLORS.muted}
+              />
+            </TouchableOpacity>
+          </View>
 
           {/* CONFIRM PASSWORD */}
 
@@ -1639,14 +1701,43 @@ function CreateAccountScreen({
             Confirm Password
           </Text>
 
-          <TextInput
-            value={confirmPassword}
-            onChangeText={setConfirmPassword}
-            placeholder="Confirm your password"
-            placeholderTextColor={COLORS.muted}
-            style={styles.loginInput}
-            secureTextEntry
-          />
+          <View style={styles.passwordInputWrapper}>
+            <TextInput
+              value={confirmPassword}
+              onChangeText={setConfirmPassword}
+              placeholder="Confirm your password"
+              placeholderTextColor={COLORS.muted}
+              style={[
+                styles.loginInput,
+                styles.passwordInput,
+              ]}
+              secureTextEntry={!showConfirmPassword}
+              autoCapitalize="none"
+            />
+
+            <TouchableOpacity
+              style={styles.passwordToggle}
+              onPress={() =>
+                setShowConfirmPassword((visible) => !visible)
+              }
+              accessibilityRole="button"
+              accessibilityLabel={
+                showConfirmPassword
+                  ? "Hide password confirmation"
+                  : "Show password confirmation"
+              }
+            >
+              <Ionicons
+                name={
+                  showConfirmPassword
+                    ? "eye-off-outline"
+                    : "eye-outline"
+                }
+                size={20}
+                color={COLORS.muted}
+              />
+            </TouchableOpacity>
+          </View>
 
           {/* =================================================
               HOUSEHOLD ROLE
@@ -3212,6 +3303,24 @@ logoImage: {
     color: COLORS.text,
     paddingHorizontal: 14,
     fontSize: 12,
+  },
+
+  passwordInputWrapper: {
+    position: "relative",
+  },
+
+  passwordInput: {
+    paddingRight: 48,
+  },
+
+  passwordToggle: {
+    position: "absolute",
+    right: 4,
+    top: 4,
+    width: 40,
+    height: 40,
+    alignItems: "center",
+    justifyContent: "center",
   },
 
   forgotPassword: {
