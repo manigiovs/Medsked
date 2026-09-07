@@ -1,6 +1,5 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
-  SafeAreaView,
   View,
   Text,
   StyleSheet,
@@ -12,22 +11,251 @@ import {
   Platform,
   Alert,
   Image,
+  Animated,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { SafeAreaView } from "react-native-safe-area-context";
+
+/* =========================================================
+   LANDING SCREEN
+========================================================= */
+
+function LandingScreen({ onFinished }) {
+  const animation = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(animation, {
+          toValue: 1,
+          duration: 900,
+          useNativeDriver: true,
+        }),
+        Animated.timing(animation, {
+          toValue: 0,
+          duration: 900,
+          useNativeDriver: true,
+        }),
+      ])
+    );
+
+    loop.start();
+
+    const timeout = setTimeout(onFinished, 2200);
+
+    return () => {
+      loop.stop();
+      clearTimeout(timeout);
+    };
+  }, [animation, onFinished]);
+
+  const markScale = animation.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0.9, 1.08],
+  });
+
+  const markOpacity = animation.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0.72, 1],
+  });
+
+  const wordmarkOpacity = animation.interpolate({
+    inputRange: [0, 0.65, 1],
+    outputRange: [0, 0.45, 1],
+  });
+
+  const wordmarkOffset = animation.interpolate({
+    inputRange: [0, 1],
+    outputRange: [8, 0],
+  });
+
+  return (
+    <SafeAreaView style={styles.landingScreen}>
+      <StatusBar
+        barStyle="dark-content"
+        backgroundColor="#FFFFFF"
+      />
+
+      <Animated.View
+        style={[
+          styles.landingMark,
+          {
+            opacity: markOpacity,
+            transform: [{ scale: markScale }],
+          },
+        ]}
+      >
+        <View style={styles.landingMarkTop} />
+        <View style={styles.landingMarkMiddle} />
+        <View style={styles.landingMarkBottom} />
+      </Animated.View>
+
+      <Animated.Text
+        style={[
+          styles.landingWordmark,
+          {
+            opacity: wordmarkOpacity,
+            transform: [{ translateY: wordmarkOffset }],
+          },
+        ]}
+      >
+        MEDSKED
+      </Animated.Text>
+    </SafeAreaView>
+  );
+}
+
+function BrandMark({ compact = false }) {
+  return (
+    <View
+      style={[
+        styles.brandLockup,
+        compact && styles.brandLockupCompact,
+      ]}
+    >
+      <View style={styles.brandMark}>
+        <View style={styles.brandMarkTop} />
+        <View style={styles.brandMarkMiddle} />
+        <View style={styles.brandMarkBottom} />
+      </View>
+
+      <Text
+        style={[
+          styles.brandWordmark,
+          compact && styles.brandWordmarkCompact,
+        ]}
+      >
+        MEDSKED
+      </Text>
+    </View>
+  );
+}
+
+function OnboardingHome({ onGetStarted, onHowItWorks }) {
+  return (
+    <SafeAreaView style={styles.onboardingScreen}>
+      <StatusBar
+        barStyle="dark-content"
+        backgroundColor="#FFFFFF"
+      />
+
+      <View style={styles.onboardingHeader}>
+        <Text style={styles.headerWordmark}>MEDSKED</Text>
+        <Ionicons name="menu-outline" size={29} color="#101827" />
+      </View>
+
+      <ScrollView
+        contentContainerStyle={styles.onboardingContent}
+        showsVerticalScrollIndicator={false}
+      >
+        <BrandMark />
+
+        <View style={styles.eyebrowRow}>
+          <View style={styles.eyebrowDot} />
+          <Text style={styles.eyebrowText}>
+            Medication Scheduling for Patient
+          </Text>
+        </View>
+
+        <Text style={styles.onboardingTitle}>
+          A verified medication schedule, built from the prescription you already have.
+        </Text>
+
+        <Text style={styles.onboardingDescription}>
+          MedSked reads a photographed prescription or label, converts the instructions into daily dose times, and checks them against meal and spacing rules - confirmed by a caregiver before it goes active.
+        </Text>
+
+        <TouchableOpacity
+          style={styles.primaryOnboardingButton}
+          onPress={onGetStarted}
+        >
+          <Text style={styles.primaryOnboardingText}>Get Started</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.secondaryOnboardingButton}
+          onPress={onHowItWorks}
+        >
+          <Text style={styles.secondaryOnboardingText}>
+            See how it works
+          </Text>
+        </TouchableOpacity>
+      </ScrollView>
+    </SafeAreaView>
+  );
+}
+
+function HowItWorksScreen({ onBack }) {
+  const steps = [
+    ["01 · SCAN", "Photograph the Label", "AI extracts the details"],
+    ["02 · REVIEW", "Check every Field", "Caregiver verifies or edits"],
+    ["03 · CONFIRM", "Approve the Schedule", "Nothing activates on its own"],
+    ["04 · TRACK", "Follow the routine", "Doses, Supply, and Alerts"],
+  ];
+
+  return (
+    <SafeAreaView style={styles.onboardingScreen}>
+      <StatusBar
+        barStyle="dark-content"
+        backgroundColor="#FFFFFF"
+      />
+
+      <View style={styles.howHeader}>
+        <TouchableOpacity style={styles.backButton} onPress={onBack}>
+          <Ionicons name="chevron-back" size={17} color="#5E6570" />
+          <Text style={styles.backText}>Back</Text>
+        </TouchableOpacity>
+        <Text style={styles.howHeaderTitle}>MEDSKED</Text>
+        <View style={styles.headerPlaceholder} />
+      </View>
+
+      <ScrollView
+        contentContainerStyle={styles.howContent}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.eyebrowRow}>
+          <View style={styles.eyebrowDot} />
+          <Text style={styles.eyebrowText}>How it Works</Text>
+        </View>
+
+        <Text style={styles.howTitle}>
+          Four steps between a prescription and a routine your household can trust.
+        </Text>
+
+        <Text style={styles.howDescription}>
+          Nothing reaches the daily dose list without passing through the same fixed sequence - scanned, reviewed, confirmed, and tracked.
+        </Text>
+
+        <View style={styles.stepsList}>
+          {steps.map(([label, title, description]) => (
+            <View key={label} style={styles.stepRow}>
+              <View style={styles.stepText}>
+                <Text style={styles.stepLabel}>{label}</Text>
+                <Text style={styles.stepTitle}>{title}</Text>
+                <Text style={styles.stepDescription}>{description}</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={17} color="#9AA0A8" />
+            </View>
+          ))}
+        </View>
+      </ScrollView>
+    </SafeAreaView>
+  );
+}
 
 /* =========================================================
    COLORS
 ========================================================= */
 
 const COLORS = {
-  bg: "#061A1D",
-  card: "#0C292D",
-  card2: "#103238",
-  border: "#1B4A50",
-  teal: "#2DB8BC",
-  tealDark: "#0A6D72",
-  text: "#F4F7F7",
-  muted: "#8CA8AB",
+  bg: "#F7FAF8",
+  card: "#FFFFFF",
+  card2: "#F0F6F2",
+  border: "#D7E3DC",
+  teal: "#16866F",
+  tealDark: "#0E6B59",
+  text: "#14251F",
+  muted: "#64746D",
   yellow: "#FFB52E",
   red: "#FF5159",
   green: "#43CA7C",
@@ -41,7 +269,7 @@ function Logo() {
   return (
     <View style={styles.logoContainer}>
       <Image
-        source={require("./medskedlogo.png")}
+        source={require("./assets/icon.png")}
         style={styles.logoImage}
         resizeMode="contain"
       />
@@ -1608,6 +1836,12 @@ function CreateAccountScreen({
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
+          <View style={styles.accountProgressRow}>
+            <View style={styles.accountProgressActive} />
+            <View style={styles.accountProgressEmpty} />
+            <View style={styles.accountProgressEmpty} />
+          </View>
+
           <View style={styles.loginLogo}>
             <Logo />
           </View>
@@ -1856,19 +2090,184 @@ function CreateAccountScreen({
   );
 }
 
+function HouseholdSetupScreen({ onComplete, onBack }) {
+  const [step, setStep] = useState(2);
+  const [householdName, setHouseholdName] = useState("");
+  const [patientName, setPatientName] = useState("");
+  const [dateOfBirth, setDateOfBirth] = useState("");
+  const [breakfast, setBreakfast] = useState("7:00 AM");
+  const [lunch, setLunch] = useState("12:00 PM");
+  const [dinner, setDinner] = useState("7:00 PM");
+
+  const continueToScan = () => {
+    if (!householdName || !patientName || !dateOfBirth) {
+      Alert.alert(
+        "Missing Information",
+        "Please complete the household and patient details."
+      );
+      return;
+    }
+
+    setStep(3);
+  };
+
+  if (step === 3) {
+    return (
+      <SafeAreaView style={styles.setupSafe}>
+        <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+        <View style={styles.setupHeader}>
+          <TouchableOpacity style={styles.setupBackButton} onPress={() => setStep(2)}>
+            <Ionicons name="chevron-back" size={15} color="#49515D" />
+            <Text style={styles.setupBackText}>Back</Text>
+          </TouchableOpacity>
+          <BrandMark compact />
+          <View style={styles.setupHeaderSpacer} />
+        </View>
+
+        <View style={styles.setupProgressRow}>
+          <View style={styles.setupProgressComplete} />
+          <View style={styles.setupProgressComplete} />
+          <View style={styles.setupProgressActive} />
+        </View>
+
+        <View style={styles.scanContent}>
+          <Text style={styles.setupStepText}>Step 3 of 3 - Scan your first label.</Text>
+          <View style={styles.scanIllustration}>
+            <View style={styles.scanPaper} />
+            <View style={styles.scanBadge}>
+              <Ionicons name="camera" size={13} color="#FFFFFF" />
+            </View>
+          </View>
+          <Text style={styles.scanTitle}>Let&apos;s scan your first prescription</Text>
+          <Text style={styles.scanDescription}>
+            Have a prescription slip or medicine label nearby? This only takes a few seconds.
+          </Text>
+          <View style={styles.scanActions}>
+            <TouchableOpacity style={styles.setupPrimaryButton} onPress={onComplete}>
+              <Ionicons name="camera-outline" size={14} color="#FFFFFF" />
+              <Text style={styles.setupPrimaryText}>Open Camera</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.setupSecondaryButton} onPress={onComplete}>
+              <Text style={styles.setupSecondaryText}>Upload from gallery</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={onComplete}>
+              <Text style={styles.setupSkipText}>Skip for now - I&apos;ll scan this later</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  return (
+    <SafeAreaView style={styles.setupSafe}>
+      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+      <View style={styles.setupHeader}>
+        <TouchableOpacity style={styles.setupBackButton} onPress={onBack}>
+          <Ionicons name="chevron-back" size={15} color="#49515D" />
+          <Text style={styles.setupBackText}>Back</Text>
+        </TouchableOpacity>
+        <BrandMark compact />
+        <View style={styles.setupHeaderSpacer} />
+      </View>
+
+      <KeyboardAvoidingView
+        style={styles.setupKeyboard}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+      >
+        <ScrollView contentContainerStyle={styles.setupScroll} keyboardShouldPersistTaps="handled">
+          <View style={styles.setupProgressRow}>
+            <View style={styles.setupProgressComplete} />
+            <View style={styles.setupProgressActive} />
+            <View style={styles.setupProgressEmpty} />
+          </View>
+          <Text style={styles.setupStepText}>Step 2 of 3 - Household setup</Text>
+          <Text style={styles.setupTitle}>Set up your household</Text>
+          <Text style={styles.setupDescription}>
+            Tell us who the schedule is for and when meals usually happen - MedSked uses this to time every dose correctly.
+          </Text>
+
+        <Text style={styles.setupLabel}>Household Name</Text>
+        <TextInput value={householdName} onChangeText={setHouseholdName} style={styles.setupInput} placeholderTextColor="#68717C" selectionColor="#142342" />
+
+        <View style={styles.setupSectionHeading}>
+          <Text style={styles.setupNumber}>1</Text>
+          <Text style={styles.setupSectionTitle}>Patient Details</Text>
+        </View>
+        <Text style={styles.setupLabel}>Patient&apos;s Full Name</Text>
+        <TextInput value={patientName} onChangeText={setPatientName} style={styles.setupInput} placeholderTextColor="#68717C" selectionColor="#142342" />
+        <Text style={styles.setupLabel}>Date of Birth</Text>
+        <TextInput value={dateOfBirth} onChangeText={setDateOfBirth} style={styles.setupInput} placeholder="MM / DD / YYYY" placeholderTextColor="#68717C" selectionColor="#142342" />
+
+        <View style={styles.setupSectionHeading}>
+          <Text style={styles.setupNumber}>2</Text>
+          <Text style={styles.setupSectionTitle}>Usual meal times</Text>
+        </View>
+        <View style={styles.mealRow}>
+          <View style={styles.mealField}><Text style={styles.setupLabel}>Breakfast</Text><TextInput value={breakfast} onChangeText={setBreakfast} style={styles.setupInput} placeholderTextColor="#68717C" selectionColor="#142342" /></View>
+          <View style={styles.mealField}><Text style={styles.setupLabel}>Lunch</Text><TextInput value={lunch} onChangeText={setLunch} style={styles.setupInput} placeholderTextColor="#68717C" selectionColor="#142342" /></View>
+        </View>
+        <Text style={styles.setupLabel}>Dinner</Text>
+        <TextInput value={dinner} onChangeText={setDinner} style={styles.setupInput} placeholderTextColor="#68717C" selectionColor="#142342" />
+
+        <View style={styles.setupTip}>
+          <Ionicons name="information-circle" size={15} color="#419D8D" />
+          <Text style={styles.setupTipText}><Text style={styles.setupTipStrong}>Why we ask:</Text> meal times help MedSked schedule with breakfast or before-bed instructions correctly, and check for conflicts between medicines that need to be spaced apart.</Text>
+        </View>
+        <TouchableOpacity style={styles.setupPrimaryButton} onPress={continueToScan}>
+          <Text style={styles.setupPrimaryText}>Continue</Text>
+        </TouchableOpacity>
+          <TouchableOpacity onPress={onComplete}>
+            <Text style={styles.setupSkipText}>Skip for now - I&apos;ll set this up later</Text>
+          </TouchableOpacity>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
+  );
+}
+
 /* =========================================================
    APP
 ========================================================= */
 
 export default function App() {
   const [screen, setScreen] =
-    useState("login");
+    useState("landing");
 
   const [activeTab, setActiveTab] =
     useState("home");
 
   const [accountRole, setAccountRole] =
     useState("Patient");
+
+  /* =======================================================
+     LANDING
+  ======================================================= */
+
+  if (screen === "landing") {
+    return (
+      <LandingScreen
+        onFinished={() => setScreen("onboarding")}
+      />
+    );
+  }
+
+  if (screen === "onboarding") {
+    return (
+      <OnboardingHome
+        onGetStarted={() => setScreen("login")}
+        onHowItWorks={() => setScreen("how-it-works")}
+      />
+    );
+  }
+
+  if (screen === "how-it-works") {
+    return (
+      <HowItWorksScreen
+        onBack={() => setScreen("onboarding")}
+      />
+    );
+  }
 
   /* =======================================================
      LOGIN
@@ -1903,21 +2302,24 @@ export default function App() {
 
           setAccountRole(account.role);
 
-          Alert.alert(
-            "Success",
-            `Your ${account.role.toLowerCase()} account has been created successfully!`,
-            [
-              {
-                text: "OK",
-                onPress: () =>
-                  setScreen("login"),
-              },
-            ]
-          );
+          setScreen("setup");
         }}
         onBackToLogin={() => {
           setScreen("login");
         }}
+      />
+    );
+  }
+
+  if (screen === "setup") {
+    return (
+      <HouseholdSetupScreen
+        onComplete={() => {
+          Alert.alert("Account ready", "Your household setup is complete.", [
+            { text: "OK", onPress: () => setScreen("login") },
+          ]);
+        }}
+        onBack={() => setScreen("create")}
       />
     );
   }
@@ -2032,6 +2434,307 @@ export default function App() {
 ========================================================= */
 
 const styles = StyleSheet.create({
+  /* ONBOARDING */
+
+  onboardingScreen: {
+    flex: 1,
+    backgroundColor: "#FFFFFF",
+  },
+
+  onboardingHeader: {
+    height: 72,
+    paddingHorizontal: 37,
+    borderBottomWidth: 1,
+    borderBottomColor: "#E2E4E7",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+
+  headerWordmark: {
+    color: "#101827",
+    fontSize: 16,
+    fontWeight: "900",
+    letterSpacing: 0.5,
+  },
+
+  onboardingContent: {
+    paddingHorizontal: 37,
+    paddingTop: 53,
+    paddingBottom: 35,
+  },
+
+  brandLockup: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 56,
+  },
+
+  brandLockupCompact: {
+    marginBottom: 0,
+  },
+
+  brandMark: {
+    width: 37,
+    height: 37,
+    marginRight: 11,
+    position: "relative",
+  },
+
+  brandMarkTop: {
+    position: "absolute",
+    top: 0,
+    right: 0,
+    width: 14,
+    height: 14,
+    borderRadius: 7,
+    backgroundColor: "#142342",
+  },
+
+  brandMarkMiddle: {
+    position: "absolute",
+    top: 12,
+    left: 0,
+    width: 23,
+    height: 15,
+    borderRadius: 10,
+    backgroundColor: "#142342",
+    transform: [{ rotate: "-13deg" }],
+  },
+
+  brandMarkBottom: {
+    position: "absolute",
+    bottom: 0,
+    right: 1,
+    width: 14,
+    height: 14,
+    borderRadius: 7,
+    backgroundColor: "#142342",
+  },
+
+  brandWordmark: {
+    color: "#101827",
+    fontSize: 26,
+    fontWeight: "900",
+    letterSpacing: 0.4,
+  },
+
+  brandWordmarkCompact: {
+    fontSize: 17,
+  },
+
+  eyebrowRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 17,
+  },
+
+  eyebrowDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: "#16866F",
+    marginRight: 10,
+  },
+
+  eyebrowText: {
+    color: "#30363E",
+    fontSize: 11,
+  },
+
+  onboardingTitle: {
+    color: "#101827",
+    fontSize: 25,
+    lineHeight: 34,
+    fontWeight: "800",
+    textAlign: "center",
+    marginBottom: 34,
+  },
+
+  onboardingDescription: {
+    color: "#686F78",
+    fontSize: 13,
+    lineHeight: 17,
+    textAlign: "center",
+    marginBottom: 64,
+  },
+
+  primaryOnboardingButton: {
+    height: 42,
+    borderRadius: 7,
+    backgroundColor: "#142342",
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 10,
+  },
+
+  primaryOnboardingText: {
+    color: "#FFFFFF",
+    fontSize: 12,
+    fontWeight: "800",
+  },
+
+  secondaryOnboardingButton: {
+    height: 42,
+    borderRadius: 7,
+    borderWidth: 1,
+    borderColor: "#D3D6DB",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  secondaryOnboardingText: {
+    color: "#101827",
+    fontSize: 12,
+    fontWeight: "800",
+  },
+
+  howHeader: {
+    height: 72,
+    paddingHorizontal: 37,
+    borderBottomWidth: 1,
+    borderBottomColor: "#E2E4E7",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+
+  backButton: {
+    width: 62,
+    flexDirection: "row",
+    alignItems: "center",
+  },
+
+  backText: {
+    color: "#30363E",
+    fontSize: 10,
+  },
+
+  howHeaderTitle: {
+    color: "#101827",
+    fontSize: 16,
+    fontWeight: "900",
+    letterSpacing: 0.5,
+  },
+
+  headerPlaceholder: {
+    width: 62,
+  },
+
+  howContent: {
+    paddingHorizontal: 48,
+    paddingTop: 37,
+    paddingBottom: 30,
+  },
+
+  howTitle: {
+    color: "#101827",
+    fontSize: 25,
+    lineHeight: 34,
+    fontWeight: "800",
+    marginBottom: 14,
+  },
+
+  howDescription: {
+    color: "#686F78",
+    fontSize: 13,
+    lineHeight: 17,
+    marginBottom: 20,
+  },
+
+  stepsList: {
+    borderTopWidth: 1,
+    borderTopColor: "#E6E7E9",
+  },
+
+  stepRow: {
+    minHeight: 89,
+    paddingVertical: 13,
+    borderBottomWidth: 1,
+    borderBottomColor: "#E6E7E9",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+
+  stepText: {
+    flex: 1,
+  },
+
+  stepLabel: {
+    color: "#16866F",
+    fontSize: 10,
+    fontWeight: "900",
+    marginBottom: 7,
+  },
+
+  stepTitle: {
+    color: "#101827",
+    fontSize: 11,
+    fontWeight: "800",
+    marginBottom: 5,
+  },
+
+  stepDescription: {
+    color: "#8B9198",
+    fontSize: 10,
+  },
+
+  /* LANDING */
+
+  landingScreen: {
+    flex: 1,
+    backgroundColor: "#FFFFFF",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  landingMark: {
+    width: 72,
+    height: 72,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  landingWordmark: {
+    marginTop: 9,
+    color: "#142342",
+    fontSize: 17,
+    fontWeight: "900",
+    letterSpacing: 1.5,
+  },
+
+  landingMarkTop: {
+    position: "absolute",
+    top: 2,
+    right: 9,
+    width: 27,
+    height: 27,
+    borderRadius: 14,
+    backgroundColor: "#142342",
+  },
+
+  landingMarkMiddle: {
+    position: "absolute",
+    top: 24,
+    left: 21,
+    width: 34,
+    height: 25,
+    borderRadius: 15,
+    backgroundColor: "#142342",
+    transform: [{ rotate: "-13deg" }],
+  },
+
+  landingMarkBottom: {
+    position: "absolute",
+    bottom: 2,
+    right: 11,
+    width: 27,
+    height: 27,
+    borderRadius: 14,
+    backgroundColor: "#142342",
+  },
+
   /* APP */
 
   app: {
@@ -2045,19 +2748,15 @@ const styles = StyleSheet.create({
   },
 
   content: {
-    paddingHorizontal: 18,
-    paddingTop: 23,
-    paddingBottom: 30,
+    paddingHorizontal: 14,
+    paddingTop: 18,
+    paddingBottom: 44,
   },
 
 logoImage: {
-  width: 47,
-  height: 47,
-  borderRadius: 24,
-  borderWidth: 2,
-  borderColor: COLORS.teal,
-  backgroundColor: "#F8FAFA",
-  marginRight: 10,
+  width: 42,
+  height: 42,
+  marginRight: 8,
 },
   /* =======================================================
      LOGO
@@ -2069,8 +2768,8 @@ logoImage: {
   },
 
   logoIcon: {
-    width: 47,
-    height: 47,
+    width: 42,
+    height: 42,
     borderRadius: 11,
     backgroundColor: COLORS.teal,
     alignItems: "center",
@@ -2080,8 +2779,9 @@ logoImage: {
 
   logoText: {
     color: COLORS.text,
-    fontSize: 17,
+    fontSize: 15,
     fontWeight: "900",
+    flexShrink: 1,
   },
 
   logoSubtext: {
@@ -2095,10 +2795,17 @@ logoImage: {
   ======================================================= */
 
   topHeader: {
-    height: 74,
+    height:
+      Platform.OS === "android"
+        ? 64 + (StatusBar.currentHeight || 0)
+        : 64,
     borderBottomWidth: 1,
     borderBottomColor: COLORS.border,
-    paddingHorizontal: 20,
+    paddingHorizontal: 12,
+    paddingTop:
+      Platform.OS === "android"
+        ? StatusBar.currentHeight || 0
+        : 0,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
@@ -2109,11 +2816,12 @@ logoImage: {
   headerRight: {
     flexDirection: "row",
     alignItems: "center",
+    flexShrink: 0,
   },
 
   patientButton: {
-    height: 43,
-    paddingHorizontal: 14,
+    height: 38,
+    paddingHorizontal: 8,
     borderWidth: 1,
     borderColor: COLORS.border,
     borderRadius: 15,
@@ -2123,13 +2831,13 @@ logoImage: {
 
   patientText: {
     color: COLORS.text,
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: "700",
-    marginHorizontal: 6,
+    marginHorizontal: 4,
   },
 
   notification: {
-    marginLeft: 13,
+    marginLeft: 8,
     position: "relative",
   },
 
@@ -2202,7 +2910,7 @@ logoImage: {
 
   pageTitle: {
     color: COLORS.text,
-    fontSize: 27,
+    fontSize: 25,
     fontWeight: "900",
     letterSpacing: -0.5,
   },
@@ -2215,7 +2923,7 @@ logoImage: {
 
   greeting: {
     color: COLORS.text,
-    fontSize: 27,
+    fontSize: 24,
     fontWeight: "900",
     marginTop: 31,
   },
@@ -2238,13 +2946,13 @@ logoImage: {
   },
 
   smallStatCard: {
-    width: "48%",
-    minHeight: 150,
+    width: "48.5%",
+    minHeight: 132,
     backgroundColor: COLORS.card,
     borderWidth: 1,
     borderColor: COLORS.border,
     borderRadius: 15,
-    padding: 14,
+    padding: 12,
     marginBottom: 10,
   },
 
@@ -2312,6 +3020,7 @@ logoImage: {
     color: COLORS.text,
     fontSize: 17,
     fontWeight: "900",
+    flexShrink: 1,
   },
 
   cardSubtitle: {
@@ -2341,7 +3050,7 @@ logoImage: {
     width: 43,
     height: 43,
     borderRadius: 11,
-    backgroundColor: "#075E63",
+    backgroundColor: "#DDF1EC",
     alignItems: "center",
     justifyContent: "center",
   },
@@ -2349,6 +3058,7 @@ logoImage: {
   doseInfo: {
     flex: 1,
     marginLeft: 12,
+    minWidth: 0,
   },
 
   medName: {
@@ -2369,7 +3079,7 @@ logoImage: {
   },
 
   dueBadge: {
-    backgroundColor: "#12373C",
+    backgroundColor: "#E5F2EC",
     borderWidth: 1,
     borderColor: COLORS.border,
     paddingHorizontal: 12,
@@ -2412,7 +3122,7 @@ logoImage: {
   },
 
   manageButton: {
-    backgroundColor: "#10383D",
+    backgroundColor: "#16866F",
     height: 43,
     borderRadius: 9,
     alignItems: "center",
@@ -2427,9 +3137,10 @@ logoImage: {
   },
 
   attentionCard: {
-    backgroundColor: "#14211D",
+    backgroundColor: "#F1F7F2",
     borderWidth: 1,
     borderColor: "#2B3C32",
+      borderColor: "#C9DDD0",
     borderRadius: 15,
     padding: 15,
     marginTop: 14,
@@ -2452,19 +3163,21 @@ logoImage: {
   ======================================================= */
 
   bottomNav: {
-    height: 74,
-    backgroundColor: "#07191C",
+    height: Platform.OS === "android" ? 92 : 68,
+    backgroundColor: "#FFFFFF",
     borderTopWidth: 1,
     borderTopColor: COLORS.border,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-around",
     paddingHorizontal: 7,
+    paddingBottom: Platform.OS === "android" ? 24 : 0,
   },
 
   navItem: {
-    width: 55,
-    height: 58,
+    flex: 1,
+    maxWidth: 72,
+    height: 54,
     borderRadius: 10,
     alignItems: "center",
     justifyContent: "center",
@@ -2475,7 +3188,7 @@ logoImage: {
   },
 
   navText: {
-    color: "#78A5A8",
+    color: "#718078",
     fontSize: 9,
     fontWeight: "600",
     marginTop: 4,
@@ -2497,7 +3210,7 @@ logoImage: {
   },
 
   filterButton: {
-    backgroundColor: "#11343A",
+    backgroundColor: "#EAF3EE",
     paddingHorizontal: 14,
     height: 33,
     borderRadius: 17,
@@ -2510,7 +3223,7 @@ logoImage: {
   },
 
   filterText: {
-    color: "#91AEB0",
+    color: "#64746D",
     fontSize: 10,
     fontWeight: "800",
   },
@@ -2574,15 +3287,15 @@ logoImage: {
   },
 
   statusMissed: {
-    backgroundColor: "#522029",
+    backgroundColor: "#FCE8E8",
   },
 
   statusTaken: {
-    backgroundColor: "#104A38",
+    backgroundColor: "#E0F3E7",
   },
 
   statusUpcoming: {
-    backgroundColor: "#123D42",
+    backgroundColor: "#E2F3F0",
   },
 
   statusText: {
@@ -2659,7 +3372,7 @@ logoImage: {
 
   timeBadge: {
     alignSelf: "flex-start",
-    backgroundColor: "#12383D",
+    backgroundColor: "#E2F3F0",
     borderRadius: 12,
     paddingHorizontal: 10,
     paddingVertical: 6,
@@ -2704,7 +3417,7 @@ logoImage: {
 
   progressBackground: {
     height: 6,
-    backgroundColor: "#17383C",
+    backgroundColor: "#DDEBE3",
     borderRadius: 5,
     marginTop: 9,
     overflow: "hidden",
@@ -2724,7 +3437,7 @@ logoImage: {
   refillButton: {
     flex: 1,
     height: 38,
-    backgroundColor: "#123C40",
+    backgroundColor: "#E2F3F0",
     borderRadius: 8,
     alignItems: "center",
     justifyContent: "center",
@@ -2935,7 +3648,7 @@ logoImage: {
 
   adherenceBarBackground: {
     height: 7,
-    backgroundColor: "#17383C",
+    backgroundColor: "#DDEBE3",
     borderRadius: 5,
     marginTop: 7,
     overflow: "hidden",
@@ -3029,7 +3742,7 @@ logoImage: {
 
   generateButton: {
     alignSelf: "flex-start",
-    backgroundColor: "#123B40",
+    backgroundColor: "#16866F",
     borderRadius: 8,
     paddingHorizontal: 11,
     paddingVertical: 9,
@@ -3125,7 +3838,7 @@ logoImage: {
     width: 65,
     height: 65,
     borderRadius: 33,
-    backgroundColor: "#07565B",
+    backgroundColor: "#DDF1EC",
     alignItems: "center",
     justifyContent: "center",
     marginRight: 15,
@@ -3145,7 +3858,7 @@ logoImage: {
 
   patientBadge: {
     alignSelf: "flex-start",
-    backgroundColor: "#07565B",
+    backgroundColor: "#DDF1EC",
     borderRadius: 12,
     paddingHorizontal: 9,
     paddingVertical: 5,
@@ -3190,7 +3903,7 @@ logoImage: {
     width: 40,
     height: 40,
     borderRadius: 10,
-    backgroundColor: "#07565B",
+    backgroundColor: "#DDF1EC",
     alignItems: "center",
     justifyContent: "center",
   },
@@ -3395,7 +4108,7 @@ logoImage: {
   roleCardSelected: {
     borderWidth: 2,
     borderColor: COLORS.teal,
-    backgroundColor: "#0D3034",
+    backgroundColor: "#E2F3F0",
   },
 
   roleTopRow: {
@@ -3419,5 +4132,296 @@ logoImage: {
     fontSize: 10,
     lineHeight: 14,
     marginTop: 7,
+  },
+
+  setupSafe: {
+    flex: 1,
+    backgroundColor: "#FFFFFF",
+  },
+
+  setupKeyboard: {
+    flex: 1,
+  },
+
+  setupHeader: {
+    height: 67,
+    paddingHorizontal: 23,
+    borderBottomWidth: 1,
+    borderBottomColor: "#E8EAEC",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+
+  setupBackButton: {
+    width: 60,
+    flexDirection: "row",
+    alignItems: "center",
+  },
+
+  setupBackText: {
+    color: "#49515D",
+    fontSize: 9,
+  },
+
+  setupHeaderSpacer: {
+    width: 60,
+  },
+
+  setupProgressRow: {
+    flexDirection: "row",
+    gap: 8,
+    paddingHorizontal: 23,
+    paddingTop: 10,
+    paddingBottom: 11,
+  },
+
+  setupProgressActive: {
+    flex: 1,
+    height: 4,
+    borderRadius: 3,
+    backgroundColor: "#142342",
+  },
+
+  setupProgressComplete: {
+    flex: 1,
+    height: 4,
+    borderRadius: 3,
+    backgroundColor: "#142342",
+  },
+
+  setupProgressEmpty: {
+    flex: 1,
+    height: 4,
+    borderRadius: 3,
+    backgroundColor: "#D9DBDD",
+  },
+
+  accountProgressRow: {
+    flexDirection: "row",
+    gap: 8,
+    marginBottom: 26,
+  },
+
+  accountProgressActive: {
+    flex: 1,
+    height: 4,
+    borderRadius: 3,
+    backgroundColor: "#142342",
+  },
+
+  accountProgressEmpty: {
+    flex: 1,
+    height: 4,
+    borderRadius: 3,
+    backgroundColor: "#D9DBDD",
+  },
+
+  setupScroll: {
+    paddingHorizontal: 23,
+    paddingBottom: 25,
+  },
+
+  setupStepText: {
+    color: "#777D85",
+    fontSize: 8,
+    marginBottom: 7,
+  },
+
+  setupTitle: {
+    color: "#101827",
+    fontSize: 16,
+    fontWeight: "900",
+    marginBottom: 6,
+  },
+
+  setupDescription: {
+    color: "#777D85",
+    fontSize: 9,
+    lineHeight: 12,
+    marginBottom: 9,
+  },
+
+  setupLabel: {
+    color: "#202631",
+    fontSize: 8,
+    fontWeight: "800",
+    marginBottom: 4,
+    marginTop: 7,
+  },
+
+  setupInput: {
+    height: 40,
+    borderWidth: 1,
+    borderColor: "#9DA2A8",
+    borderRadius: 5,
+    backgroundColor: "#FFFFFF",
+    paddingHorizontal: 10,
+    color: "#202631",
+    fontSize: 13,
+    fontWeight: "500",
+  },
+
+  setupSectionHeading: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 12,
+    marginBottom: 1,
+  },
+
+  setupNumber: {
+    width: 15,
+    height: 15,
+    borderWidth: 1,
+    borderColor: "#A4A9AF",
+    borderRadius: 8,
+    textAlign: "center",
+    lineHeight: 14,
+    color: "#4E5660",
+    fontSize: 8,
+    marginRight: 7,
+  },
+
+  setupSectionTitle: {
+    color: "#202631",
+    fontSize: 8,
+    fontWeight: "900",
+  },
+
+  mealRow: {
+    flexDirection: "row",
+    gap: 8,
+  },
+
+  mealField: {
+    flex: 1,
+  },
+
+  setupTip: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    backgroundColor: "#F4F5F6",
+    borderWidth: 1,
+    borderColor: "#B7BDC3",
+    borderRadius: 6,
+    padding: 8,
+    marginTop: 10,
+  },
+
+  setupTipText: {
+    flex: 1,
+    color: "#59616B",
+    fontSize: 7,
+    lineHeight: 10,
+    marginLeft: 6,
+  },
+
+  setupTipStrong: {
+    color: "#252D38",
+    fontWeight: "900",
+  },
+
+  setupPrimaryButton: {
+    height: 23,
+    borderRadius: 5,
+    backgroundColor: "#142342",
+    alignItems: "center",
+    justifyContent: "center",
+    flexDirection: "row",
+    gap: 5,
+    marginTop: 8,
+  },
+
+  setupPrimaryText: {
+    color: "#FFFFFF",
+    fontSize: 8,
+    fontWeight: "900",
+  },
+
+  setupSkipText: {
+    color: "#4B535D",
+    textAlign: "center",
+    fontSize: 7,
+    marginTop: 6,
+  },
+
+  scanContent: {
+    flex: 1,
+    alignItems: "center",
+    paddingHorizontal: 23,
+  },
+
+  scanIllustration: {
+    width: 110,
+    height: 100,
+    backgroundColor: "#F7F8F9",
+    borderWidth: 1,
+    borderColor: "#B4BAC1",
+    borderRadius: 5,
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 27,
+    marginBottom: 28,
+  },
+
+  scanPaper: {
+    width: 43,
+    height: 57,
+    borderWidth: 1,
+    borderColor: "#A9AFB6",
+    borderRadius: 4,
+    backgroundColor: "#FFFFFF",
+    transform: [{ rotate: "-11deg" }],
+  },
+
+  scanBadge: {
+    position: "absolute",
+    right: 24,
+    bottom: 18,
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    backgroundColor: "#142342",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  scanTitle: {
+    color: "#101827",
+    fontSize: 14,
+    lineHeight: 19,
+    fontWeight: "900",
+    textAlign: "center",
+    maxWidth: 190,
+  },
+
+  scanDescription: {
+    color: "#777D85",
+    fontSize: 9,
+    lineHeight: 12,
+    textAlign: "center",
+    maxWidth: 190,
+    marginTop: 8,
+  },
+
+  scanActions: {
+    width: "100%",
+    marginTop: 75,
+  },
+
+  setupSecondaryButton: {
+    height: 23,
+    borderWidth: 1,
+    borderColor: "#9DA2A8",
+    borderRadius: 5,
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 7,
+  },
+
+  setupSecondaryText: {
+    color: "#202631",
+    fontSize: 8,
+    fontWeight: "800",
   },
 });
