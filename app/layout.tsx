@@ -3,7 +3,7 @@ import type { Metadata, Viewport } from 'next'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'MediTrack — Medication & Care Management',
+  title: 'Medsked — Medication & Care Management',
   description:
     'Track medications, dose schedules, reminders, adherence, and refills with role-based access for patients, caregivers, and clinicians.',
   generator: 'v0.app',
@@ -27,11 +27,8 @@ export const metadata: Metadata = {
 }
 
 export const viewport: Viewport = {
-  colorScheme: 'light dark',
-  themeColor: [
-    { media: '(prefers-color-scheme: light)', color: 'white' },
-    { media: '(prefers-color-scheme: dark)', color: 'black' },
-  ],
+  colorScheme: 'light',
+  themeColor: 'white',
 }
 
 export default function RootLayout({

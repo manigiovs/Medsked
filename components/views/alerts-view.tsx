@@ -128,7 +128,7 @@ export function AlertsView() {
             <ChannelRow
               icon={Bell}
               label="In-app notifications"
-              desc="Show alerts inside MediTrack"
+              desc="Show alerts inside Medsked"
               checked={channels.inApp}
               onCheckedChange={(v) => setChannels((c) => ({ ...c, inApp: v }))}
             />

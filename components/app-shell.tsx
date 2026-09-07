@@ -15,6 +15,7 @@ import {
   Users,
   User,
   Stethoscope,
+  LogOut,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useApp } from "@/lib/store"
@@ -79,7 +80,7 @@ const ROLE_META: Record<Role, { label: string; icon: typeof User }> = {
   clinician: { label: "Clinician", icon: Stethoscope },
 }
 
-export function AppShell() {
+export function AppShell({ onLogout }: { onLogout?: () => void }) {
   const app = useApp()
   const [view, setView] = useState<ViewId>("dashboard")
 
@@ -105,7 +106,7 @@ export function AppShell() {
             <HeartPulse className="size-5" />
           </div>
           <div className="flex flex-col leading-tight">
-            <span className="text-sm font-semibold">MediTrack</span>
+            <span className="text-sm font-semibold">Medsked</span>
             <span className="text-xs text-muted-foreground">Medication Care</span>
           </div>
         </div>
@@ -146,7 +147,7 @@ export function AppShell() {
               <div className="flex size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
                 <HeartPulse className="size-4" />
               </div>
-              <span className="text-sm font-semibold">MediTrack</span>
+              <span className="text-sm font-semibold">Medsked</span>
             </div>
 
             <div className="ml-auto flex items-center gap-2">
@@ -237,6 +238,15 @@ export function AppShell() {
               )
             })}
           </DropdownMenuGroup>
+          {onLogout && (
+            <>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={onLogout} className="text-destructive focus:text-destructive">
+                <LogOut />
+                Log out
+              </DropdownMenuItem>
+            </>
+          )}
         </DropdownMenuContent>
       </DropdownMenu>
     )
@@ -262,6 +272,15 @@ export function AppShell() {
               </DropdownMenuItem>
             ))}
           </DropdownMenuGroup>
+          {onLogout && (
+            <>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={onLogout} className="text-destructive focus:text-destructive">
+                <LogOut />
+                Log out
+              </DropdownMenuItem>
+            </>
+          )}
         </DropdownMenuContent>
       </DropdownMenu>
     )
@@ -270,14 +289,33 @@ export function AppShell() {
   function PatientSwitcher() {
     if (app.accessiblePatients.length <= 1) {
       return (
-        <div className="hidden items-center gap-2 rounded-lg border px-3 py-1.5 sm:flex">
-          <Avatar className="size-6">
-            <AvatarFallback className="bg-accent text-xs text-accent-foreground">
-              {app.activePatient.initials}
-            </AvatarFallback>
-          </Avatar>
-          <span className="text-sm font-medium">{app.activePatient.name}</span>
-        </div>
+        <DropdownMenu>
+          <DropdownMenuTrigger
+            render={
+              <button
+                type="button"
+                className="hidden items-center gap-2 rounded-lg border px-3 py-1.5 sm:flex"
+              />
+            }
+          >
+            <Avatar className="size-6">
+              <AvatarFallback className="bg-accent text-xs text-accent-foreground">
+                {app.activePatient.initials}
+              </AvatarFallback>
+            </Avatar>
+            <span className="text-sm font-medium">{app.activePatient.name}</span>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-52">
+            <DropdownMenuLabel>{app.currentUser.name}</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            {onLogout && (
+              <DropdownMenuItem onClick={onLogout} className="text-destructive focus:text-destructive">
+                <LogOut />
+                Log out
+              </DropdownMenuItem>
+            )}
+          </DropdownMenuContent>
+        </DropdownMenu>
       )
     }
     return (
